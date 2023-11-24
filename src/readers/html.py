@@ -5,13 +5,14 @@ The HTML reader is implemented as a subclas of the XML reader.
 '''
 
 from ..extractors import extract
-from .xml import XMLCorpusDefinition
+from .xml import XMLReader
 import bs4
 import logging
 
 logger = logging.getLogger()
 
-class HTMLCorpusDefinition(XMLCorpusDefinition):
+
+class HTMLReader(XMLReader):
     '''
     An HTMLCorpus is any corpus that extracts its data from HTML sources.
     '''

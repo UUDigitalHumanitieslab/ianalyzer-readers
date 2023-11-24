@@ -5,7 +5,7 @@ Extraction is based on beautiful soup.
 '''
 
 from ..extractors import extract
-from .core import CorpusDefinition
+from .core import Reader
 import itertools
 import bs4
 import logging
@@ -13,7 +13,7 @@ import logging
 logger = logging.getLogger()
 
 
-class XMLCorpusDefinition(CorpusDefinition):
+class XMLReader(Reader):
     '''
     An XMLCorpus is any corpus that extracts its data from XML sources.
     '''

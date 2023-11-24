@@ -10,7 +10,7 @@ import logging
 logger = logging.getLogger()
 
 
-class CorpusDefinition(object):
+class Reader(object):
     '''
     Subclasses of this class define corpora and their documents by specifying:
 
@@ -80,7 +80,8 @@ class CorpusDefinition(object):
                 raise RuntimeError(
                     "Specified extractor method cannot be used with this type of data")
 
-class ParentCorpusDefinition(CorpusDefinition):
+
+class ParentReader(Reader):
     ''' A class from which other corpus definitions can inherit.
     This class is in charge of setting fields, usually without defining an extractor.
     The subclassed CorpusDefinitions will set extractors on the fields -
@@ -107,7 +108,7 @@ class ParentCorpusDefinition(CorpusDefinition):
 
 # Fields ######################################################################
 
-class FieldDefinition(object):
+class ReaderField(object):
     '''
     Fields hold the following data:
     - a short hand name (name)

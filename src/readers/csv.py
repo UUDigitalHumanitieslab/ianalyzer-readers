@@ -5,7 +5,7 @@ Extraction is based on python's `csv` library.
 '''
 
 from ..extractors import extract
-from .core import CorpusDefinition
+from .core import Reader
 import csv
 import sys
 
@@ -13,9 +13,10 @@ import logging
 
 logger = logging.getLogger()
 
-class CSVCorpusDefinition(CorpusDefinition):
+
+class CSVReader(Reader):
     '''
-    An CSVCorpus is any corpus that extracts its data from CSV sources.
+    An CSVReader extracts data from comma separated value files.
     '''
 
     '''
