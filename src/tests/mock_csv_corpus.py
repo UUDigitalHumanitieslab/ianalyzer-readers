@@ -1,42 +1,34 @@
-from addcorpus.corpus import CSVCorpusDefinition, FieldDefinition
-from addcorpus.extract import CSV
+from readers.csv import CSVReader
+from readers.core import Field
+from extractors.extract import CSV
 import os
-import datetime
 
 here = os.path.abspath(os.path.dirname(__file__))
 
-class MockCSVCorpus(CSVCorpusDefinition):
+
+class TestCSVReader(CSVReader):
     """Example CSV corpus class for testing"""
 
-    title = "Example"
-    description = "Example corpus"
-    es_index = 'nothing'
-    min_date = datetime.datetime(year=1, month=1, day=1)
-    max_date = datetime.datetime(year=2022, month=12, day=31)
-    image = 'nothing.jpeg'
     data_directory = os.path.join(here, 'csv_example')
     field_entry = 'character'
 
-    languages = ['en']
-    category = 'book'
-
-    def sources(self, start, end):
+    def sources(self, **kwargs):
         for filename in os.listdir(self.data_directory):
             full_path = os.path.join(self.data_directory, filename)
             yield full_path, {
-                    'filename': filename
-                }
+                'filename': filename
+            }
 
     fields = [
-        FieldDefinition(
-            name = 'character',
-            extractor = CSV(field = 'character')
+        Field(
+            name='character',
+            extractor=CSV(field='character')
         ),
-        FieldDefinition(
-            name = 'lines',
-            extractor = CSV(
-                field = 'line',
-                multiple = True,
+        Field(
+            name='lines',
+            extractor=CSV(
+                field='line',
+                multiple=True,
             )
         )
     ]

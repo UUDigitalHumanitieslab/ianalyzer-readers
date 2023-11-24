@@ -108,7 +108,7 @@ class ParentReader(Reader):
 
 # Fields ######################################################################
 
-class ReaderField(object):
+class Field(object):
     '''
     Fields hold the following data:
     - a short hand name (name)

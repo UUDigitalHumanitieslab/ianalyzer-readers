@@ -1,6 +1,6 @@
 import pytest
 
-from addcorpus.tests.mock_csv_corpus import MockCSVCorpus
+from .mock_csv_corpus import TestCSVReader
 import os
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -46,9 +46,9 @@ target_documents = [
 
 
 def test_csv():
-    corpus = MockCSVCorpus()
+    corpus = TestCSVReader()
 
-    sources = list(corpus.sources(corpus.min_date, corpus.max_date))
+    sources = list(corpus.sources())
     assert len(sources) == 1 and sources[0][1] == {'filename': 'example.csv'}
 
     docs = corpus.source2dicts(sources[0])
