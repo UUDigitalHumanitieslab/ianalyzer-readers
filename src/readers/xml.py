@@ -89,7 +89,7 @@ class XMLReader(Reader):
                     soup_entry=spoon,
                     metadata=metadata,
                     index=i,
-                ) for field in regular_fields if field.indexed}
+                ) for field in regular_fields if not field.skip}
                 external_dict = {}
                 if external_fields:
                     metadata.update(regular_field_dict)

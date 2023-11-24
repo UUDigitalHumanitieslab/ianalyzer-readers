@@ -53,7 +53,7 @@ class HTMLReader(XMLReader):
                         soup_entry=spoon,
                         metadata=metadata,
                         index=i
-                    ) for field in self.fields if field.indexed
+                    ) for field in self.fields if not field.skip
                 }
         else:
             # yield all page content
@@ -64,5 +64,5 @@ class HTMLReader(XMLReader):
                     soup_top='',
                     soup_entry=soup,
                     metadata=metadata,
-                ) for field in self.fields if field.indexed
+                ) for field in self.fields if not field.skip
             }

@@ -96,7 +96,7 @@ class CSVReader(Reader):
                 # any and all information it might need
                 rows=rows, metadata = metadata, index=row_index
             )
-            for field in self.fields if field.indexed
+            for field in self.fields if not field.skip
         }
 
         return doc

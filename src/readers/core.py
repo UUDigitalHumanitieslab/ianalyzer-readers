@@ -124,12 +124,14 @@ class Field(object):
                  name=None,
                  extractor=extract.Constant(None),
                  required=False,
+                 skip=False,
                  **kwargs
                  ):
 
         self.name = name
         self.extractor = extractor
         self.required = required
+        self.skip = skip
 
 # Helper functions ############################################################
 
