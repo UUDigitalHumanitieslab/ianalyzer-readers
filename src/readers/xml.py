@@ -1,20 +1,16 @@
 '''
-Module contains the base classes from which corpora can derive;
+Module for the XML reader
+
+Extraction is based on beautiful soup.
 '''
 
-from . import extract
+from ..extractors import extract
+from .core import CorpusDefinition
 import itertools
 import bs4
-import csv
-import sys
-from datetime import datetime
-from os.path import isdir
-
-from django.conf import settings
-
 import logging
 
-logger = logging.getLogger('indexing')
+logger = logging.getLogger()
 
 
 class XMLCorpusDefinition(CorpusDefinition):

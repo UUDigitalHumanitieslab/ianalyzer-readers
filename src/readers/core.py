@@ -1,20 +1,13 @@
 '''
-Module contains the base classes from which corpora can derive;
+More with core classes
 '''
 
-from . import extract
-import itertools
-import bs4
-import csv
-import sys
+from ..extractors import extract
 from datetime import datetime
-from os.path import isdir
-
-from django.conf import settings
 
 import logging
 
-logger = logging.getLogger('indexing')
+logger = logging.getLogger()
 
 
 class CorpusDefinition(object):
@@ -28,78 +21,12 @@ class CorpusDefinition(object):
     '''
 
     @property
-    def title(self):
-        '''
-        Title of the corpus
-        '''
-        raise NotImplementedError('CorpusDefinition missing title')
-
-    @property
-    def description(self):
-        '''
-        Short description of the corpus
-        '''
-        raise NotImplementedError('CorpusDefinition missing description')
-
-    @property
     def data_directory(self):
         '''
         Path to source data directory.
         '''
         raise NotImplementedError('CorpusDefinition missing data_directory')
 
-    @property
-    def min_date(self):
-        '''
-        Minimum timestamp for data files.
-        '''
-        raise NotImplementedError('CorpusDefinition missing min_date')
-
-    @property
-    def max_date(self):
-        '''
-        Maximum timestamp for data files.
-        '''
-        raise NotImplementedError('CorpusDefinition missing max_date')
-
-
-    '''
-    Language(s) used in the corpus
-
-    Should be a list of strings. Each language should
-    correspond to an ISO-639 code.
-    '''
-    languages = ['']
-
-    @property
-    def category(self):
-        '''
-        Type of documents in the corpus
-
-        See addcorpus.constants.CATEGORIES for options
-        '''
-        raise NotImplementedError('CorpusDefinition missing category')
-
-    @property
-    def es_index(self):
-        '''
-        ElasticSearch index name.
-        '''
-        raise NotImplementedError('CorpusDefinition missing category')
-
-    '''
-    Elasticsearch alias. Defaults to None.
-    '''
-    es_alias = None
-
-    '''
-    Dictionary containing ElasticSearch settings for the corpus' index.
-    Can be overridden, usually to set analysers for fields. By default contains the
-    setting to ensure `number_of_replicas` is zero on index creation (this is better
-    while creating an index). Should you choose to overwrite this, consider  using
-    the `addcorpus.es_settings` module.
-    '''
-    es_settings = {'index': {'number_of_replicas': 0}}
 
     @property
     def fields(self):
@@ -110,126 +37,7 @@ class CorpusDefinition(object):
         '''
         raise NotImplementedError('CorpusDefinition missing fields')
 
-
-    '''
-    A dictionary that specifies how documents can be grouped into a "context". For example,
-    parliamentary speeches may be grouped into debates. The dictionary has two keys:
-    - `'context_fields'`: a list of the `name`s of the fields that can be used to
-    group documents. The context of a document is the set of documents that match
-    its value for all the listed fields.
-    - `'sort_field'`: the `name` of the field by which documents can be sorted
-    within their respective group. The field should be marked as `sortable`. If `None`,
-    no sorting will be applied.
-    - `'sort_direction'`: direction of sorting to be applied, can be `'asc'` or `'desc'`
-    - `'context_display_name'`: The display name for the context used in the interface. If
-    `None`, use the displayName of the first context field.
-    '''
-    document_context = {
-        'context_fields': None,
-        'sort_field': None,
-        'context_display_name': None
-    }
-
-    @property
-    def image(self):
-        '''
-        Name of the corpus image. Should be relative path from a directory 'images'
-        in the same directory as the corpus definition file.
-        '''
-        raise NotImplementedError('CorpusDefinition missing image')
-
-    '''
-    MIME type of scanned documents (images)
-    '''
-    scan_image_type = None
-
-    '''
-    path where word models are stored
-    '''
-    word_model_path = None
-
-    @property
-    def word_models_present(self):
-        '''
-        if word models are present for this corpus
-        '''
-        return self.word_model_path != None and isdir(self.word_model_path)
-
-    @property
-    def new_highlight(self):
-        '''
-        if the corpus has been re-indexed using the top-level term vector 'with_positions_offsets'
-        for the main content field, needed for the updated highlighter
-        TODO: remove this property and its references when all corpora are reindexed using the
-        current definitions (with the top-level term vector for speech)
-        '''
-        try:
-            highlight_corpora = settings.NEW_HIGHLIGHT_CORPORA
-        except:
-            return False
-        return self.title in highlight_corpora
-
-    '''
-    Allow the downloading of source images
-    '''
-    allow_image_download = False
-
-    '''
-    filename of markdown document with a comprehensive description
-    '''
-    description_page = None
-
-    def update_body(self, **kwargs):
-        ''' given one document in the index, give an instruction
-        of how to update the index
-        (based on script or partial data)
-        '''
-        return None
-
-    def update_script(self, **kwargs):
-        ''' return a (generator of a) Elasticsearch
-        update_by_query script
-        '''
-        return None
-
-    def update_query(self, **kwargs):
-        ''' given the min date and max date of the
-        time period for which the update should be performed,
-        return a query restricting the result set
-        Default is a match_all query.
-        '''
-        return {
-            "query": {
-                "match_all": {}
-            }
-        }
-
-    def request_media(self, document, corpus_name):
-        '''
-        Get a dictionary with
-        'media': list of urls from where media associated with a document can be fetched,
-        'info': information for file download
-
-        Arguments:
-        - `document`: dict representation of document. Field values are stored in `fieldValues`
-        - `corpus_name`: name of the corpus in settings. Needed to create urls with the proper corpus name.
-        '''
-        return {'media': None, 'info': None}
-
-    def es_mapping(self):
-        '''
-        Create the ElasticSearch mapping for the fields of this corpus. May be
-        passed to the body of an ElasticSearch index creation request.
-        '''
-        return {
-            'properties': {
-                field.name: field.es_mapping
-                for field in self.fields
-                if field.es_mapping and field.indexed
-            }
-        }
-
-    def sources(self, start=datetime.min, end=datetime.max):
+    def sources(self, **kwargs):
         '''
         Obtain source files for the corpus, relevant to the given timespan.
 
@@ -271,7 +79,7 @@ class CorpusDefinition(object):
             if isinstance(field.extractor, inapplicable_extractors):
                 raise RuntimeError(
                     "Specified extractor method cannot be used with this type of data")
-    
+
 class ParentCorpusDefinition(CorpusDefinition):
     ''' A class from which other corpus definitions can inherit.
     This class is in charge of setting fields, usually without defining an extractor.
@@ -301,91 +109,22 @@ class ParentCorpusDefinition(CorpusDefinition):
 
 class FieldDefinition(object):
     '''
-    Fields may hold the following data:
+    Fields hold the following data:
     - a short hand name (name)
-    - the name shown shown to the user (display name)
-    - what kind of data they contain, e.g. text, keywords... (display type)
-    - an explanation of the field (description)
-    - whether they are added to the Elasticsearch index (indexed)
-    - whether they are hidden from the frontend (hidden)
-    - whether they appear in the overview of results (results_overview)
-    - whether they appear in the preselection of csv fields (csv_core)
-    - whether they appear in the preselection of search fields (search_field_core)
-    - whether they are associated with a visualization type (visualizations)
-        options: resultscount, termfrequency, wordcloud, ngram
-    - how the visualization's x-axis should be sorted (visualization_sort)
-    - the mapping of the field in Elasticsearch (es_mapping)
-    - definitions for if the field is also used as search filter (search_filter)
     - how to extract data from the source documents (extractor)
-    - whether you can sort by this field (sortable)
-    - whether you can search this field (searchable)
     - whether this field is required
-
-    In short, this is how all things related to the informational structure of
-    each particular corpus is stored.
     '''
 
     def __init__(self,
                  name=None,
-                 display_name=None,
-                 display_type=None,
-                 description='',
-                 indexed=True,
-                 hidden=False,
-                 results_overview=False,
-                 csv_core=False,
-                 search_field_core=False,
-                 visualizations=[],
-                 visualization_sort=None,
-                 es_mapping={'type': 'text'},
-                 language=None,
-                 search_filter=None,
                  extractor=extract.Constant(None),
-                 sortable=None,
-                 primary_sort=False,
-                 searchable=None,
-                 downloadable=True,
                  required=False,
                  **kwargs
                  ):
 
-        mapping_type = es_mapping['type']
-
         self.name = name
-        self.display_name = display_name or name
-        self.display_type = display_type or mapping_type
-        self.description = description
-        self.search_filter = search_filter
-        self.results_overview = results_overview
-        self.csv_core = csv_core
-        self.search_field_core = search_field_core
-        self.visualizations = visualizations
-        self.visualization_sort = visualization_sort
-        self.es_mapping = es_mapping
-        self.language = language
-        self.indexed = indexed
-        self.hidden = not indexed or hidden
         self.extractor = extractor
         self.required = required
-
-        self.sortable = sortable if sortable != None else \
-            not hidden and indexed and \
-            mapping_type in ['integer', 'float', 'date']
-
-        self.primary_sort = primary_sort
-
-        # Fields are searchable if they are not hidden and if they are mapped as 'text'.
-        # Keyword fields without a filter are also searchable.
-        self.searchable = searchable if searchable != None else \
-            not hidden and indexed and \
-            ((mapping_type == 'text') or
-             (mapping_type == 'keyword' and self.search_filter == None))
-        # Add back reference to field in filter
-        self.downloadable = downloadable
-
-        if self.search_filter:
-            self.search_filter.field = self
-
 
 # Helper functions ############################################################
 

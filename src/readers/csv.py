@@ -1,20 +1,17 @@
 '''
-Module contains the base classes from which corpora can derive;
+Module for the CSV reader
+
+Extraction is based on python's `csv` library.
 '''
 
-from . import extract
-import itertools
-import bs4
+from ..extractors import extract
+from .core import CorpusDefinition
 import csv
 import sys
-from datetime import datetime
-from os.path import isdir
-
-from django.conf import settings
 
 import logging
 
-logger = logging.getLogger('indexing')
+logger = logging.getLogger()
 
 class CSVCorpusDefinition(CorpusDefinition):
     '''

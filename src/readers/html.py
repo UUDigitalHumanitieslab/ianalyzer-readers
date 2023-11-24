@@ -1,20 +1,15 @@
 '''
-Module contains the base classes from which corpora can derive;
+Mode for the HTML reader.
+
+The HTML reader is implemented as a subclas of the XML reader.
 '''
 
-from . import extract
-import itertools
+from ..extractors import extract
+from .xml import XMLCorpusDefinition
 import bs4
-import csv
-import sys
-from datetime import datetime
-from os.path import isdir
-
-from django.conf import settings
-
 import logging
 
-logger = logging.getLogger('indexing')
+logger = logging.getLogger()
 
 class HTMLCorpusDefinition(XMLCorpusDefinition):
     '''
