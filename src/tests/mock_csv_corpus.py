@@ -1,6 +1,6 @@
-from readers.csv import CSVReader
-from readers.core import Field
-from extractors.extract import CSV
+from ..readers.csv import CSVReader
+from ..readers.core import Field
+from ..extractors.extract import CSV
 import os
 
 here = os.path.abspath(os.path.dirname(__file__))
