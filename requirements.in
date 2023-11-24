@@ -1,4 +1,3 @@
 pytest
 beautifulsoup4
 lxml
-tqdm

@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ianalyzer_extractors"
+version = "0.0.0"
+authors = [
+  {name="Utrecht University, Centre for Digital Humanities - Research Software Lab", email="cdh@uu.nl"}
+]
+license = {text = "MIT"}
+dependencies = [
+  "beautifulsoup4",
+  "lxml",
+]
+
+description = "Utilities for extracting XML, HTML and CSV data with a common interface"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+  'Development Status :: 2 - Pre-Alpha',
+  'Intended Audience :: Science/Research',
+  'License :: OSI Approved :: MIT License',
+  'Operating System :: OS Independent',
+  'Programming Language :: Python :: 3'
+]
+
+[project.optional-dependencies]
+dev = ['pytest']
+
+[tool.setuptools]
+packages = ["ianalyzer_extractors"]
+
+[tool.setuptools.package-data]
+ianalyzer_extractors = [
+    "ianalyzer_extractors/tests/**/*.csv",
+    "ianalyzer_extractors/tests/**/*.xml",
+]
