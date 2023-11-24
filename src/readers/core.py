@@ -37,6 +37,10 @@ class Reader(object):
         '''
         raise NotImplementedError('CorpusDefinition missing fields')
 
+    @property
+    def fieldnames(self):
+        return [field.name for field in self.fields]
+
     def sources(self, **kwargs):
         '''
         Obtain source files for the corpus, relevant to the given timespan.
