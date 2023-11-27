@@ -84,40 +84,15 @@ class Reader(object):
                 raise RuntimeError(
                     "Specified extractor method cannot be used with this type of data")
 
-
-class ParentReader(Reader):
-    ''' A class from which other corpus definitions can inherit.
-    This class is in charge of setting fields, usually without defining an extractor.
-    The subclassed CorpusDefinitions will set extractors on the fields -
-    this way, CorpusDefinitions can share the same mappings and filters,
-    while the logic to collect sources and populate the fields can be different.
-    The ParentCorpusDefinition can also be used to allow cross-corpus search and filtering.
-    '''
-    #define fields property so it can be set in __init__
-    @property
-    def fields(self):
-        return self._fields
-
-    @fields.setter
-    def fields(self, value):
-        self._fields = value
-
-    def __init__(self):
-        ''' Specify a list of fields which all subclasses share
-            A subclass of ParentCorpusDefinition will provide extractors for the fields,
-            and potentially prune done the list of fields to those which have an extractor
-        '''
-        self.fields = []
-
-
 # Fields ######################################################################
 
 class Field(object):
     '''
     Fields hold the following data:
-    - a short hand name (name)
+    - a short hand name (name), which will be used as its key in the document
     - how to extract data from the source documents (extractor)
     - whether this field is required
+    - whether this field should be skipped
     '''
 
     def __init__(self,

@@ -15,10 +15,10 @@ logger = logging.getLogger()
 
 class XMLReader(Reader):
     '''
-    An XMLCorpus is any corpus that extracts its data from XML sources.
+    An XMLReader extracts data from XML sources
     '''
 
-
+    tag_toplevel = None
     '''
     The top-level tag in the source documents.
 
@@ -28,8 +28,8 @@ class XMLReader(Reader):
     - A dictionary that gives the named arguments to soup.find_all()
     - A bound method that takes the metadata of the document as input and outputs one of the above.
     '''
-    tag_toplevel = None
 
+    tag_entry = None
     '''
     The tag that corresponds to a single document entry.
 
@@ -39,12 +39,10 @@ class XMLReader(Reader):
     - A dictionary that gives the named arguments to soup.find_all()
     - A bound method that takes the metadata of the document as input and outputs one of the above.
     '''
-    tag_entry = None
 
     def source2dicts(self, source):
         '''
-        Generate document dictionaries from a given XML file. This is the
-        default implementation for XML layouts; may be subclassed if more
+        Generate document dictionaries from a given XML file.
         '''
         # Make sure that extractors are sensible
         self._reject_extractors(extract.CSV)
@@ -110,7 +108,7 @@ class XMLReader(Reader):
 
     def get_tag_requirements(self, specification, metadata):
         '''
-        Get the requirements for a tag given the specification.
+        Get the requirements for a tag given the specification and metadata.
 
         The specification can be:
         - None

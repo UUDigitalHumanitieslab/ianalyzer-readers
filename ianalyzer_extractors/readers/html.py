@@ -14,13 +14,12 @@ logger = logging.getLogger()
 
 class HTMLReader(XMLReader):
     '''
-    An HTMLCorpus is any corpus that extracts its data from HTML sources.
+    An HTML reader extracts data from HTML sources. It is based on the XML reader.
     '''
 
     def source2dicts(self, source):
         '''
-        Generate a document dictionaries from a given HTML file. This is the
-        default implementation for HTML layouts; may be subclassed if more
+        Generate document dictionaries from a given HTML file.
         '''
         (filename, metadata) = source
 

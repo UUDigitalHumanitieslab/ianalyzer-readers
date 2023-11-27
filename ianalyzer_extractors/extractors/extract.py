@@ -1,6 +1,6 @@
 '''
-This module is a tool to define how to extract specific information from an
-object such as a dictionary or a BeautifulSoup XML node.
+This module contains extractor classes that can be used to obtain values for each field
+in a Reader.
 '''
 
 import bs4
@@ -8,13 +8,12 @@ import html
 import re
 import logging
 import traceback
-logger = logging.getLogger('indexing')
+logger = logging.getLogger()
 
 
 class Extractor(object):
     '''
-    An extractor contains a method that can be applied to some number arguments
-    and attempts to obtain from that the information that it was looking for.
+    An extractor contains a method that can be used to gather data for a field. 
     '''
 
     def __init__(self,
@@ -140,12 +139,17 @@ class Pass(Extractor):
         return self.extractor.apply(*nargs, **kwargs)
 
 class Order(Extractor):
+    '''
+    An extractor that returns the index of the document in its
+    source file.
+    '''
+
     def _apply(self, index=None, *nargs, **kwargs):
         return index
 
 class XML(Extractor):
     '''
-    This extractor extracts attributes or contents from a BeautifulSoup node.
+    Extractor for XML data. Searches through a BeautifulSoup document.
     '''
 
     def __init__(self,
@@ -367,7 +371,7 @@ class FilterAttribute(XML):
 
 class CSV(Extractor):
     '''
-    This extractor extracts values from a CSV row.
+    This extractor extracts values from a list of CSV rows.
 
     Parameters:
     - multiple: Boolean. If a document spans multiple rows of the CSV, the extracted value for a field with

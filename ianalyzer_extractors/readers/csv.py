@@ -17,32 +17,39 @@ logger = logging.getLogger()
 class CSVReader(Reader):
     '''
     An CSVReader extracts data from comma separated value files.
+
+    By default, the reader will extract one document per row, but you
+    can also set `field_entry` to group grows.
     '''
 
+    field_entry = None
     '''
     If applicable, the field that identifies entries. Subsequent rows with the same
     value for this field are treated as a single document. If left blank, each row
     is treated as a document.
     '''
-    field_entry = None
 
+    required_field = None
     '''
     Specifies a required field, for example the main content. Rows with
     an empty value for `required_field` will be skipped.
     '''
-    required_field = None
 
+    delimiter = ','
     '''
     The delimiter for the CSV reader.
     '''
-    delimiter = ','
 
+    skip_lines = 0
     '''
     Number of lines to skip before reading the header
     '''
-    skip_lines = 0
 
     def source2dicts(self, source):
+        '''
+        Generate document dicts from a CSV file
+        '''
+
         # make sure the field size is as big as the system permits
         csv.field_size_limit(sys.maxsize)
         self._reject_extractors(extract.XML, extract.FilterAttribute)
@@ -90,6 +97,10 @@ class CSVReader(Reader):
             yield self.document_from_rows(rows, metadata, index)
 
     def document_from_rows(self, rows, metadata, row_index):
+        '''
+        Extract a single document from a list of rows
+        '''
+
         doc = {
             field.name: field.extractor.apply(
                 # The extractor is put to work by simply throwing at it
