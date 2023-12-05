@@ -3,7 +3,7 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "ianalyzer_extractors"
+name = "ianalyzer_readers"
 version = "0.0.0"
 authors = [
   {name="Utrecht University, Centre for Digital Humanities - Research Software Lab", email="cdh@uu.nl"}
@@ -29,10 +29,9 @@ classifiers = [
 dev = ['pytest']
 
 [tool.setuptools]
-packages = ["ianalyzer_extractors"]
+packages = ["ianalyzer_readers"]
 
-[tool.setuptools.package-data]
-ianalyzer_extractors = [
-    "ianalyzer_extractors/tests/**/*.csv",
-    "ianalyzer_extractors/tests/**/*.xml",
+[tool.pytest.ini_options]
+pythonpath = [
+  'ianalyzer_readers'
 ]

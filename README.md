@@ -1,6 +1,6 @@
-# I-analyzer extractors
+# I-analyzer Readers
 
-`ianalyzer-extractors` is a python module to extract data from XML, HTML or CSV files.
+`ianalyzer-readers` is a python module to extract data from XML, HTML or CSV files.
 
 This module was originally created for [I-analyzer](https://github.com/UUDigitalHumanitieslab/I-analyzer), a web application that extracts data from a variety of datasets, indexes them and presents a search interface. To do this, we wanted a way to extract data from source files without having to write a new script "from scratch" for each dataset, and an API that would work the same regardless of the source file type.
 
@@ -14,7 +14,7 @@ Required Python 3.8 or later. You can install dependencies with `pip install -r 
 
 ## Contents
 
-[ianalyzer_extractors](./ianalyzer_extractors/) contains the source code for the package. [ianalyzer_extractors/tests](./ianalyzer_extractors/tests/) contains unit tests.
+[ianalyzer_readers](./ianalyzer_readers/) contains the source code for the package. [tests](./tests/) contains unit tests.
 
 ## When to use this package
 
@@ -30,7 +30,7 @@ What we find especially useful is that all subclasses of `Reader` have the same 
 
 *User documentation is not yet complete.*
 
-Typical use is that for each dataset you want to extract, you will create a subclass of `Reader` and define required properties. See the [CSV test corpus](./ianalyzer_extractors/tests/mock_csv_corpus.py) for an example.
+Typical use is that for each dataset you want to extract, you will create a subclass of `Reader` and define required properties. See the [CSV test corpus](./tests/mock_csv_corpus.py) for an example.
 
 After defining the class for your dataset, you can call the `documents()` method to get a generator of document dictionaries.
 
