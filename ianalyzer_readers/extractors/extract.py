@@ -371,10 +371,10 @@ class FilterAttribute(XML):
 
 class CSV(Extractor):
     '''
-    This extractor extracts values from a list of CSV rows.
+    This extractor extracts values from a list of CSV or spreadsheet rows.
 
     Parameters:
-    - multiple: Boolean. If a document spans multiple rows of the CSV, the extracted value for a field with
+    - multiple: Boolean. If a document spans multiple rows, the extracted value for a field with
     `multiple = True` is a list of the value in each row. If `multiple = False` (default), only the value
     from the first row is extracted.
     - convert_to_none: optional, default is `['']`. Listed values are converted to `None`. If `None`/`False`, nothing is converted.

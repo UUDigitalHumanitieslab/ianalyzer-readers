@@ -1,6 +1,6 @@
 # I-analyzer Readers
 
-`ianalyzer-readers` is a python module to extract data from XML, HTML or CSV files.
+`ianalyzer-readers` is a python module to extract data from XML, HTML, CSV or XLSX files.
 
 This module was originally created for [I-analyzer](https://github.com/UUDigitalHumanitieslab/I-analyzer), a web application that extracts data from a variety of datasets, indexes them and presents a search interface. To do this, we wanted a way to extract data from source files without having to write a new script "from scratch" for each dataset, and an API that would work the same regardless of the source file type.
 
@@ -24,7 +24,7 @@ Our primary use for this package is to pre-process data for I-analyzer, but you 
 
 Using this package makes sense if you want to extract data in the shape that it is designed for (i.e., a list of flat dictionaries).
 
-What we find especially useful is that all subclasses of `Reader` have the same interface - regardless of whether they are processing CSV, XML or HTML data. That common interface is crucial in an application that needs to process corpora from different source types, like I-analyzer.
+What we find especially useful is that all subclasses of `Reader` have the same interface - regardless of whether they are processing CSV, XML, HTML, or XLSX data. That common interface is crucial in an application that needs to process corpora from different source types, like I-analyzer.
 
 ## Usage
 
