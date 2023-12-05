@@ -10,7 +10,7 @@ The basic usage is that you will use the utilities in this package to create a "
 
 ## Prerequisites
 
-Required Python 3.8 or later. You can install dependencies with `pip install -r requirements.txt`
+Requires Python 3.8 or later. You can install dependencies with `pip install -r requirements.txt`
 
 ## Contents
 
@@ -28,9 +28,9 @@ What we find especially useful is that all subclasses of `Reader` have the same 
 
 ## Usage
 
-*User documentation is not yet complete.*
+*Usage documentation is not yet complete.*
 
-Typical use is that for each dataset you want to extract, you will create a subclass of `Reader` and define required properties. See the [CSV test corpus](./tests/mock_csv_corpus.py) for an example.
+Typical use is that, for each dataset you want to extract, you create a subclass of `Reader` and define required properties. See the [CSV test corpus](./tests/mock_csv_corpus.py) for an example.
 
 After defining the class for your dataset, you can call the `documents()` method to get a generator of document dictionaries.
 
