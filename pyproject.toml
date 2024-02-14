@@ -8,6 +8,9 @@ version = "0.0.0"
 authors = [
   {name="Utrecht University, Centre for Digital Humanities - Research Software Lab", email="cdh@uu.nl"}
 ]
+maintainers = [
+  {name="Utrecht University, Centre for Digital Humanities - Research Software Lab", email="cdh@uu.nl"}
+]
 license = {text = "MIT"}
 dependencies = [
   "beautifulsoup4",
@@ -25,6 +28,9 @@ classifiers = [
   'Operating System :: OS Independent',
   'Programming Language :: Python :: 3'
 ]
+
+[project.urls]
+Repository = "https://github.com/UUDigitalHumanitieslab/I-analyzer"
 
 [project.optional-dependencies]
 dev = ['pytest']

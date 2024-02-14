@@ -6,11 +6,11 @@ This module was originally created for [I-analyzer](https://github.com/UUDigital
 
 The basic usage is that you will use the utilities in this package to create a "reader" class. You specify what your data looks like, and then call the `documents()` method of the reader to get an iterator of documents - where each document is a flat dictionary of key/value pairs.
 
-**State of development:** this module is currently under development and lacks proper unit tests and documentation. It is intended to work as a python package, but it is not currently part of any registry.
+**State of development:** this module is currently under development and lacks proper unit tests and documentation.
 
 ## Prerequisites
 
-Requires Python 3.8 or later. You can install dependencies with `pip install -r requirements.txt`
+Requires Python 3.8 or later.
 
 ## Contents
 
