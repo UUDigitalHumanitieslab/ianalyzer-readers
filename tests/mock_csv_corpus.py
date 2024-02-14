@@ -1,6 +1,6 @@
 from ianalyzer_readers.readers.csv import CSVReader
 from ianalyzer_readers.readers.core import Field
-from ianalyzer_readers.extractors.extract import CSV
+from ianalyzer_readers.extract import CSV
 import os
 
 here = os.path.abspath(os.path.dirname(__file__))

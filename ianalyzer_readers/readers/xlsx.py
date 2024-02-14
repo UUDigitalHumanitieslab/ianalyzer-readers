@@ -3,7 +3,7 @@ import openpyxl
 from openpyxl.worksheet.worksheet import Worksheet
 
 from .core import Reader
-from ..extractors import extract
+from .. import extract
 
 logger = logging.getLogger()
 

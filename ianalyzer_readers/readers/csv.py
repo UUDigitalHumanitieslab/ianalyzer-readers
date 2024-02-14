@@ -4,7 +4,7 @@ Module for the CSV reader
 Extraction is based on python's `csv` library.
 '''
 
-from ..extractors import extract
+from .. import extract
 from .core import Reader
 import csv
 import sys

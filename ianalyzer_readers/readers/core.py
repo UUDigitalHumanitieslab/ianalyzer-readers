@@ -2,7 +2,7 @@
 More with core classes
 '''
 
-from ..extractors import extract
+from .. import extract
 from datetime import datetime
 
 import logging

@@ -4,7 +4,7 @@ Module for the XML reader
 Extraction is based on beautiful soup.
 '''
 
-from ..extractors import extract
+from .. import extract
 from .core import Reader
 import itertools
 import bs4

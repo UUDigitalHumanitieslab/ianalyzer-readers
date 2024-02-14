@@ -32,7 +32,6 @@ dev = ['pytest']
 [tool.setuptools]
 packages = [
   "ianalyzer_readers",
-  "ianalyzer_readers.extractors",
   "ianalyzer_readers.readers",
 ]
 

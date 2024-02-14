@@ -4,7 +4,7 @@ Mode for the HTML reader.
 The HTML reader is implemented as a subclas of the XML reader.
 '''
 
-from ..extractors import extract
+from .. import extract
 from .xml import XMLReader
 import bs4
 import logging
