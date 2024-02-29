@@ -4,6 +4,8 @@ plugins:
   - mkdocstrings
 nav:
   - 'index.md'
+  - 'api.md'
+  - 'examples.md'
 watch:
   - docs
   - ianalyzer_readers
