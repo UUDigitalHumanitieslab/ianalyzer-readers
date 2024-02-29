@@ -9,3 +9,9 @@ nav:
 watch:
   - docs
   - ianalyzer_readers
+plugins:
+- mkdocstrings:
+    handlers:
+      python:
+        options:
+          heading_level: 3
