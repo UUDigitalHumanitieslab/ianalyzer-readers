@@ -1,1 +1,9 @@
 site_name: I-analyzer Readers
+repo_url: https://github.com/UUDigitalHumanitieslab/ianalyzer-readers
+plugins:
+  - mkdocstrings
+nav:
+  - 'index.md'
+watch:
+  - docs
+  - ianalyzer_readers
