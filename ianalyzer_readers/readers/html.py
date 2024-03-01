@@ -1,25 +1,40 @@
 '''
-Mode for the HTML reader.
+This module defines the XML Reader.
 
-The HTML reader is implemented as a subclas of the XML reader.
+The HTML reader is implemented as a subclas of the XML reader, and uses
+BeautifulSoup to parse files.
 '''
 
 from .. import extract
+from .core import Source, Document
 from .xml import XMLReader
 import bs4
 import logging
+from typing import Iterable
 
 logger = logging.getLogger()
 
 
 class HTMLReader(XMLReader):
     '''
-    An HTML reader extracts data from HTML sources. It is based on the XML reader.
+    An HTML reader extracts data from HTML sources.
+
+    It is based on the XMLReader and supports the same options (`tag_toplevel` and
+    `tag_entry`).
     '''
 
-    def source2dicts(self, source):
+    def source2dicts(self, source: Source) -> Iterable[Document]:
         '''
-        Generate document dictionaries from a given HTML file.
+        Given an HTML source file, returns an iterable of extracted documents.
+
+        Parameters:
+            source: the source file to extract. This can be a string with the path to
+                the file, or a tuple with a path and a dictionary containing metadata.
+        
+        Returns:
+            an iterable of document dictionaries. Each of these is a dictionary,
+                where the keys are names of this Reader's `fields`, and the values
+                are based on the extractor of each field.
         '''
         (filename, metadata) = source
 
