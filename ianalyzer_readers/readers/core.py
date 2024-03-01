@@ -9,11 +9,29 @@ The module defines two classes, `Field` and `Reader`.
 
 from .. import extract
 from datetime import datetime
-from typing import List, Iterable, Dict, Any
+from typing import List, Iterable, Dict, Any, Union, Tuple
 import logging
 
 logger = logging.getLogger()
 
+Source = Union[str, Tuple[str, Dict], bytes]
+'''
+Type definition for the source input to some Reader methods.
+
+Sources are either:
+
+- a string with the path to a filename
+- a tuple containing a path to a filename, and a dictionary with metadata
+- binary data with the file contents. This is not supported on all Reader subclasses.
+'''
+
+Document = Dict[str, Any]
+'''
+Type definition for documents, defined for convenience.
+
+Each document extracted by a Reader is a dictionary, where the keys are names of
+the Reader's `fields`, and the values are based on the extractor of each field.
+'''
 
 class Reader(object):
     '''
@@ -67,7 +85,7 @@ class Reader(object):
         '''
         return [field.name for field in self.fields]
 
-    def sources(self, **kwargs) -> Iterable:
+    def sources(self, **kwargs) -> Iterable[Source]:
         '''
         Obtain source files for the Reader.
 
@@ -83,22 +101,27 @@ class Reader(object):
         '''
         raise NotImplementedError('CorpusDefinition missing sources')
 
-    def source2dicts(self, source) -> Iterable[Dict[str, Any]]:
+    def source2dicts(self, source: Source) -> Iterable[Document]:
         '''
         Given a source file, returns an iterable of extracted documents.
 
+        Parameters:
+            source: the source file to extract. This can be a string with the path to
+                the file, or a tuple with a path and a dictionary containing metadata.
+                Some reader subclasses may also support bytes as input.
+        
         Returns:
             an iterable of document dictionaries. Each of these is a dictionary,
                 where the keys are names of this Reader's `fields`, and the values
                 are based on the extractor of each field.
 
         Raises:
-            NotImplementedError: This method needs to be implementd on child
+            NotImplementedError: This method needs to be implemented on child
                 classes. It will raise an error by default.
         '''
         raise NotImplementedError('CorpusDefinition missing source2dicts')
 
-    def documents(self, sources:Iterable[str]=None) -> Iterable[Dict[str, Any]]:
+    def documents(self, sources:Iterable[Source]=None) -> Iterable[Document]:
         '''
         Returns an iterable of extracted documents from source files.
 
@@ -121,8 +144,14 @@ class Reader(object):
 
     def _reject_extractors(self, *inapplicable_extractors):
         '''
-        Raise errors if any fields use extractors that are not applicable
-        for the corpus.
+        Raise errors if any fields use any of the given extractors.
+
+        This can be used to check that fields use extractors that match
+        the Reader subclass.
+
+        Raises:
+            RuntimeError: raised when a field uses an extractor that is provided
+                in the input.
         '''
         for field in self.fields:
             if isinstance(field.extractor, inapplicable_extractors):
