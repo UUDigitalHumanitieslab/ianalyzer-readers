@@ -1,6 +1,9 @@
 '''
 This module contains extractor classes that can be used to obtain values for each field
 in a Reader.
+
+Some extractors are intended to work with specific `Reader` classes, while others
+are generic.
 '''
 
 import bs4
@@ -8,12 +11,21 @@ import html
 import re
 import logging
 import traceback
+from typing import Tuple
 logger = logging.getLogger()
 
 
 class Extractor(object):
     '''
+    Base class for extractors.
+
     An extractor contains a method that can be used to gather data for a field. 
+
+    Parameters:
+        applicable: optional predicate that takes metadata and decides whether this
+            extractor is applicable. If left as `None`, the extractor is always
+            applicable.
+        transform: optional function to transform the postprocess the extracted value.
     '''
 
     def __init__(self,
@@ -48,6 +60,10 @@ class Extractor(object):
         '''
         Actual extractor method to be implemented in subclasses (assume that
         testing for applicability and post-processing is taken care of).
+
+        Raises:
+            NotImplementedError: This method needs to be implemented on child
+                classes. It will raise an error by default.
         '''
         raise NotImplementedError()
 
@@ -55,10 +71,29 @@ class Extractor(object):
 class Choice(Extractor):
     '''
     Use the first applicable extractor from a list of extractors.
+
+    This is a generic extractor that can be used in any `Reader`.
+
+    The Choice extractor will use the `applicable` property of its provided extractors
+    to check which applies. 
+
+    Example usage: 
+    
+        Choice(Constant('foo', applicable=some_condition), Constant('bar'))
+
+    This would extract `'foo'` if `some_condition` is met; otherwise,
+    the extracted value will be `'bar'`.
+
+    Note the difference with `Backup`: `Choice` is based on _metadata_, rather than the
+    extracted value.
+
+    Parameters:
+        *extractors: extractors to choose from. These should be listed in descending
+            order of preference.
     '''
 
-    def __init__(self, *nargs, **kwargs):
-        self.extractors = list(nargs)
+    def __init__(self, *extractors: Extractor, **kwargs):
+        self.extractors = list(extractors)
         super().__init__(**kwargs)
 
     def _apply(self, metadata, *nargs, **kwargs):
@@ -71,10 +106,21 @@ class Choice(Extractor):
 class Combined(Extractor):
     '''
     Apply all given extractors and return the results as a tuple.
+
+    This is a generic extractor that can be used in any `Reader`.
+
+    Example usage:
+
+        Combined(Constant('foo'), Constant('bar'))
+    
+    This would extract `('foo', 'bar')` for each document.
+
+    Parameters:
+        *extractors: extractors to combine.
     '''
 
-    def __init__(self, *nargs, **kwargs):
-        self.extractors = list(nargs)
+    def __init__(self, *extractors: Extractor, **kwargs):
+        self.extractors = list(extractors)
         super().__init__(**kwargs)
 
     def _apply(self, *nargs, **kwargs):
@@ -86,9 +132,26 @@ class Combined(Extractor):
 class Backup(Extractor):
     '''
     Try all given extractors in order and return the first result that evaluates as true
+
+    This is a generic extractor that can be used in any `Reader`.
+
+    Example usage:
+
+        Backup(Constant(None), Constant('foo'))
+    
+    Since the first extractor returns `None`, the second extractor will be used, and the 
+    extracted value would be `'foo'`.
+
+    Note the difference with `Choice`: `Backup` is based on the _extracted value_, rather
+    than metadata.
+
+    Parameters:
+        *extractors: extractors to use. These should be listed in descending order of
+            preference.
+
     '''
-    def __init__(self, *nargs, **kwargs):
-        self.extractors = list(nargs)
+    def __init__(self, *extractors: Extractor, **kwargs):
+        self.extractors = list(extractors)
         super().__init__(**kwargs)
 
     def _apply(self, *nargs, **kwargs):
@@ -102,6 +165,13 @@ class Backup(Extractor):
 class Constant(Extractor):
     '''
     This extractor 'extracts' the same value every time, regardless of input.
+
+    This is a generic extractor that can be used in any `Reader`.
+
+    It is especially useful in combination with `Backup` or `Choice`.
+
+    Parameters:
+        value: the value that should be "extracted".
     '''
 
     def __init__(self, value, *nargs, **kwargs):
@@ -115,6 +185,12 @@ class Constant(Extractor):
 class Metadata(Extractor):
     '''
     This extractor extracts a value from provided metadata.
+
+    This is a generic extractor that can be used in any `Reader`.
+    
+    Parameters:
+        key: the key in the metadata dictionary that should be
+            extracted.
     '''
 
     def __init__(self, key, *nargs, **kwargs):
@@ -128,10 +204,19 @@ class Pass(Extractor):
     '''
     An extractor that just passes the value of another extractor.
 
-    Useful if you want to stack multiple `transform` arguments
+    This is a generic extractor that can be used in any `Reader`.
+
+    This is useful if you want to stack multiple `transform` arguments. For example:
+
+        Pass(Constant('foo  ', transfrom=str.upper), transform=str.strip)
+
+    This will extract `str.strip(str.upper('foo  '))`, i.e. `'FOO'`.
+    
+    Parameters:
+        extractor: the extractor of which the value should be passed
     '''
 
-    def __init__(self, extractor, *nargs, **kwargs):
+    def __init__(self, extractor: Extractor, *nargs, **kwargs):
         self.extractor = extractor
         super().__init__(**kwargs)
 
@@ -142,6 +227,11 @@ class Order(Extractor):
     '''
     An extractor that returns the index of the document in its
     source file.
+
+    The index of the document needs to be passed on the by `Reader`, which needs to
+    implement some kind of counter in its `source2dicts` method. The `Reader` subclasses
+    in this package all implement this, and so `Order` can safely be used in any of them.
+    However, custom `Reader` subclasses may not support this extractor.
     '''
 
     def _apply(self, index=None, *nargs, **kwargs):
@@ -150,38 +240,51 @@ class Order(Extractor):
 class XML(Extractor):
     '''
     Extractor for XML data. Searches through a BeautifulSoup document.
+
+    This extractor should be used in a `Reader` based on `XMLReader`. (Note that this
+    includes the `HTMLReader`.)
+
+    Parameters:
+        tag: Tag to select. When this is a list, read as a path (e.g. to select
+            successive children; makes sense when `recursive=False`). Pass `None` if the
+            information is in an attribute of the current head of the tree.
+        parent_level: Whether to ascend the tree to find the indicated tag. Useful when
+            a part of the tree has been selected with `secondary_tag`
+        attribute: Which attribute, if any, to select
+        flatten: Flatten the text content of a non-text children?
+        toplevel: Tag to select for search: top-level or entry tag
+        recursive: Whether to search all descendants
+        multiple: Whether to abandon the search after the first element
+        secondary_tag: Whether the tag's content should match a given metadata field
+            ('match') or string ('exact')
+        external_file: Whether to search other xml files for this field, and the file tag
+            these files should have
+        transform_soup_func: A function to transform the soup directly after `_select`
+            was called, i.e. before further processing (attributes, flattening, etc).
+            Keep in mind that the soup passed could be `None`.
+        extract_soup_func: A function to extract a value directly from the soup object,
+            instead of using the content string or giving an attribute. Keep in mind
+            that the soup passed could be `None`.
     '''
 
     def __init__(self,
-                 # Tag to select. When this is a list, read as a path
-                 # e.g. to select successive children; makes sense when recursive=False)
-                 # Pass None if the information is in the attribute of the
-                 # current head of the tree
                  tag=[],
-                 # whether to ascend the tree to find the indicated tag
-                 # useful when a part of the tree has been selected with secondary_tag
                  parent_level=None,
-                 attribute=None,  # Which attribute, if any, to select
-                 flatten=False,  # Flatten the text content of a non-text children?
-                 toplevel=False,  # Tag to select for search: top-level or entry tag
-                 recursive=False,  # Whether to search all descendants
-                 multiple=False,  # Whether to abandon the search after the first element
+                 attribute=None,
+                 flatten=False,
+                 toplevel=False,
+                 recursive=False,
+                 multiple=False,
                  secondary_tag={
                      'tag': None,
                      'match': None,
                      'exact': None,
-                 },  # Whether the tag's content should match a given metadata field ('match') or string ('exact')
-                 external_file={  # Whether to search other xml files for this field, and the file tag these files should have
+                 },
+                 external_file={
                      'xml_tag_toplevel': None,
                      'xml_tag_entry': None
                  },
-                 # a function [e.g. `my_func(soup)`]` to transform the soup directly
-                 # after _select was called, i.e. before further processing (attributes, flattening, etc).
-                 # Keep in mind that the soup passed could be None.
                  transform_soup_func=None,
-                 # a function to extract a value directly from the soup object, instead of using the content string
-                 # or giving an attribute
-                # Keep in mind that the soup passed could be None.
                  extract_soup_func=None,
                  *nargs,
                  **kwargs
@@ -327,11 +430,16 @@ class XML(Extractor):
 class FilterAttribute(XML):
     '''
     This extractor extracts attributes or contents from a BeautifulSoup node.
-    It is an extension of the XML extractor
+
+    It is an extension of the `XML` extractor and adds a single parameter,
+    `attribute_filter`.
+
+    Parameters:
+        attribute_filter: Specify an attribute / value pair by which to select content
     '''
 
     def __init__(self,
-                 attribute_filter={  # Specify an attribute / value pair by which to select content
+                 attribute_filter={
                      'attribute': None,
                      'value': None},
                  *nargs,
@@ -373,11 +481,13 @@ class CSV(Extractor):
     '''
     This extractor extracts values from a list of CSV or spreadsheet rows.
 
+    It should be used in readers based on `CSVReader` or `XLSXReader`.
+
     Parameters:
-    - multiple: Boolean. If a document spans multiple rows, the extracted value for a field with
-    `multiple = True` is a list of the value in each row. If `multiple = False` (default), only the value
-    from the first row is extracted.
-    - convert_to_none: optional, default is `['']`. Listed values are converted to `None`. If `None`/`False`, nothing is converted.
+        multiple: Boolean. If a document spans multiple rows, the extracted value for a field with
+            `multiple = True` is a list of the value in each row. If `multiple = False` (default), only the value
+            from the first row is extracted.
+        convert_to_none: optional, default is `['']`. Listed values are converted to `None`. If `None`/`False`, nothing is converted.
     '''
     def __init__(self,
             field,
@@ -402,19 +512,18 @@ class CSV(Extractor):
             return value
 
 class ExternalFile(Extractor):
+    '''
+    Free for all external file extractor that provides a stream to `stream_handler`
+    to do whatever is needed to extract data from an external file. Relies on `associated_file`
+    being present in the metadata. Note that the XMLExtractor has a built in trick to extract
+    data from external files (i.e. setting `external_file`), so you probably need that if your
+    external file is XML.
+
+    Parameters:
+        stream_handler: function that will handle the opened file.
+    '''
 
     def __init__(self, stream_handler, *nargs, **kwargs):
-        '''
-        Free for all external file extractor that provides a stream to `stream_handler`
-        to do whatever is needed to extract data from an external file. Relies on `associated_file`
-        being present in the metadata. Note that the XMLExtractor has a built in trick to extract
-        data from external files (i.e. setting `external_file`), so you probably need that if your
-        external file is XML.
-
-        Parameters:
-            folder -- folder where the file is located.
-            stream_handler -- function that will handle the opened file.
-        '''
         super().__init__(*nargs, **kwargs)
         self.stream_handler = stream_handler
 
