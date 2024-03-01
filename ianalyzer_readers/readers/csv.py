@@ -22,21 +22,24 @@ class CSVReader(Reader):
     The CSVReader is designed for .csv or .tsv files that have a header row, and where
     each file may list multiple documents.
 
-    By default, the reader will extract one document for each row in a csv file, but
-    you can also set the `field_entry` property to group rows.
+    The data should be structured in one of the following ways:
+    
+    - one document per row (this is the default)
+    - each document spans a number of consecutive rows. In this case, there should be a
+        column that indicates the identity of the document.
     '''
 
     field_entry = None
     '''
-    If applicable, the column that identifies entries. Subsequent rows with the same
-    value for this column are treated as a single document. If left blank, each row
+    If applicable, the name of the column that identifies entries. Subsequent rows with the
+    same value for this column are treated as a single document. If left blank, each row
     is treated as a document.
     '''
 
     required_field = None
     '''
-    Specifies a required column in the CSV data, for example the main content. Rows
-    with an empty value for `required_field` will be skipped.
+    Specifies the name of a required column in the CSV data, for example the main content.
+    Rows with an empty value for `required_field` will be skipped.
     '''
 
     delimiter = ','
@@ -47,7 +50,7 @@ class CSVReader(Reader):
     skip_lines = 0
     '''
     Number of lines in the file to skip before reading the header. Can be used when files
-    use a fixed "preamble", e.g. to provide metadata or provenance.
+    use a fixed "preamble", e.g. to describe metadata or provenance.
     '''
 
     def source2dicts(self, source: Source) -> Generator[Document]:
@@ -102,15 +105,15 @@ class CSVReader(Reader):
                         document_id = identifier
 
                 if is_new_document and rows:
-                    yield self.document_from_rows(rows, metadata, index)
+                    yield self._document_from_rows(rows, metadata, index)
                     rows = [row]
                     index += 1
                 else:
                     rows.append(row)
 
-            yield self.document_from_rows(rows, metadata, index)
+            yield self._document_from_rows(rows, metadata, index)
 
-    def document_from_rows(self, rows: List[Dict], metadata: Dict, doc_index: int) -> Document:
+    def _document_from_rows(self, rows: List[Dict], metadata: Dict, doc_index: int) -> Document:
         '''
         Extract a single document from a list of rows
 
