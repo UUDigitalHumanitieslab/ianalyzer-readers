@@ -76,7 +76,7 @@ class Reader(object):
             NotImplementedError: This method needs to be implementd on child
                 classes. It will raise an error by default.
         '''
-        raise NotImplementedError('Reader missing fields')
+        raise NotImplementedError('Reader missing fields implementation')
 
     @property
     def fieldnames(self) -> List[str]:
@@ -99,7 +99,7 @@ class Reader(object):
             NotImplementedError: This method needs to be implementd on child
                 classes. It will raise an error by default.
         '''
-        raise NotImplementedError('CorpusDefinition missing sources')
+        raise NotImplementedError('Reader missing sources implementation')
 
     def source2dicts(self, source: Source) -> Iterable[Document]:
         '''
@@ -119,7 +119,7 @@ class Reader(object):
             NotImplementedError: This method needs to be implemented on child
                 classes. It will raise an error by default.
         '''
-        raise NotImplementedError('CorpusDefinition missing source2dicts')
+        raise NotImplementedError('Reader missing source2dicts implementation')
 
     def documents(self, sources:Iterable[Source]=None) -> Iterable[Document]:
         '''
