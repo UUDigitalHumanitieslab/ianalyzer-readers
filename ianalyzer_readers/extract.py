@@ -11,7 +11,7 @@ import html
 import re
 import logging
 import traceback
-from typing import Tuple
+from typing import Any, Dict, Callable, Union, List, Pattern
 logger = logging.getLogger()
 
 
@@ -174,7 +174,7 @@ class Constant(Extractor):
         value: the value that should be "extracted".
     '''
 
-    def __init__(self, value, *nargs, **kwargs):
+    def __init__(self, value: Any, *nargs, **kwargs):
         self.value = value
         super().__init__(*nargs, **kwargs)
 
@@ -193,7 +193,7 @@ class Metadata(Extractor):
             extracted.
     '''
 
-    def __init__(self, key, *nargs, **kwargs):
+    def __init__(self, key: str, *nargs, **kwargs):
         self.key = key
         super().__init__(*nargs, **kwargs)
 
@@ -244,48 +244,89 @@ class XML(Extractor):
     This extractor should be used in a `Reader` based on `XMLReader`. (Note that this
     includes the `HTMLReader`.)
 
+    The XML extractor has a lot of options. When deciding how to extract a value, it
+    usually makes sense to determine them in this order:
+
+    - Choose whether to use the source file (default), or use an external XML file by
+        setting `external_file`.
+    - Choose where to start searching. The default searching point is the entry tag
+        for the document, but you can also start from the top of the document by setting
+        `toplevel`. For either of these tags, you can set `parent_level` to select
+        an ancestor to search from. For instance, `parent_level=1` will search from the 
+        parent of the selected tag.
+    - Choose the query to describe the tag(s) you need. Set `tag`, `recursive`,
+        `secondary_tag`.
+    - If you need to return _all_ matching tags, rather than the first match, set
+        `multiple=True`.
+    - If needed, set `transform_soup_func` to further modify the matched tag. For
+        instance, you could use built-in parameters to select a tag, and then add a
+        `transform_soup_func` to select a child from it with a more complex condition.
+    - Choose how to extract a value: set `attribute`, `flatten`, or `extract_soup_func`
+        if needed.
+    - The extracted value is a string, or the output of `extract_soup_func`. To further
+        transform it, add a function for `transform`.
+
     Parameters:
-        tag: Tag to select. When this is a list, read as a path (e.g. to select
-            successive children; makes sense when `recursive=False`). Pass `None` if the
-            information is in an attribute of the current head of the tree.
-        parent_level: Whether to ascend the tree to find the indicated tag. Useful when
-            a part of the tree has been selected with `secondary_tag`
-        attribute: Which attribute, if any, to select
-        flatten: Flatten the text content of a non-text children?
-        toplevel: Tag to select for search: top-level or entry tag
-        recursive: Whether to search all descendants
-        multiple: Whether to abandon the search after the first element
+        tag: Tag to select. Can be:
+         
+            - a string
+            - a compiled regular expression (the output of `re.compile`).
+            - a list of strings or regular expression pattterns. In that case, it is read
+                as a path to select successive children.
+            - `None`, if the information is in an attribute of the current head of the
+                tree.
+        parent_level: If set, the extractor will ascend the tree before looking for the
+            indicated `tag`. Useful when you need to select information from a tag's
+            sibling or parent.
+        attribute: By default, the extractor will extract the text content of the tag.
+            Set this property to extract the value of an _attribute_ instead.
+        flatten: When extracting the text content of a tag, `flatten` determines whether
+            the contents of non-text children are flattened. If `False`, only the direct
+            text content of the tag is extracted. This parameter does nothing if
+            `attribute=True` is set.
+        toplevel: If `True`, the extractor will search from the toplevel tag of the XML
+            document, rather than the entry tag for the document.
+        recursive: If `True`, the extractor will search for `tag` recursively. If `False`,
+            it only looks for direct children.
+        multiple: If `False`, the extractor will extract the first matching element. If 
+            `True`, it will extract a list of all matching elements.
         secondary_tag: Whether the tag's content should match a given metadata field
             ('match') or string ('exact')
-        external_file: Whether to search other xml files for this field, and the file tag
-            these files should have
-        transform_soup_func: A function to transform the soup directly after `_select`
-            was called, i.e. before further processing (attributes, flattening, etc).
-            Keep in mind that the soup passed could be `None`.
-        extract_soup_func: A function to extract a value directly from the soup object,
-            instead of using the content string or giving an attribute. Keep in mind
+        external_file: This property can be set to look through a secondary XML file
+            (usually one containing metadata). It requires that the pass metadata have an
+            `'external_file'` key that specifies the path to the file. This parameter
+            specifies the toplevel tag and entry level tag for that file; if set, the
+            extractor will extract this field from the external file instead of the current
+            source file.
+        transform_soup_func: A function to transform the soup directly after the tag is
+            selected, before further processing (attributes, flattening, etc) to extract
+            the value from it. Keep in mind that the soup passed could be `None` if no
+            matching tag is found.
+        extract_soup_func: A function to extract a value directly from the soup element,
+            instead of using the content string or an attribute. Keep in mind
             that the soup passed could be `None`.
+            `attribute` and `flatten` will do nothing if this property is set.
     '''
 
     def __init__(self,
-                 tag=[],
-                 parent_level=None,
-                 attribute=None,
-                 flatten=False,
-                 toplevel=False,
-                 recursive=False,
-                 multiple=False,
-                 secondary_tag={
+                 tag: Union[str, Pattern, List[Union[str, Pattern]], None] =[],
+                 parent_level: Union[int, None] = None,
+                 attribute: Union[str, None] = None,
+                 flatten: bool = False,
+                 toplevel: bool = False,
+                 recursive: bool = False,
+                 multiple: bool = False,
+                 secondary_tag: Dict = {
                      'tag': None,
                      'match': None,
                      'exact': None,
                  },
-                 external_file={
+                 external_file: Dict = {
                      'xml_tag_toplevel': None,
                      'xml_tag_entry': None
                  },
-                 transform_soup_func=None,
-                 extract_soup_func=None,
+                 transform_soup_func: Union[Callable, None] = None,
+                 extract_soup_func: Union[Callable, None] = None,
                  *nargs,
                  **kwargs
                  ):
