@@ -5,7 +5,7 @@ Extraction is based on python's `csv` library.
 '''
 
 from .. import extract
-from typing import Generator, List, Dict
+from typing import List, Dict, Iterable
 from .core import Reader, Document, Source
 import csv
 import sys
@@ -53,7 +53,7 @@ class CSVReader(Reader):
     use a fixed "preamble", e.g. to describe metadata or provenance.
     '''
 
-    def source2dicts(self, source: Source) -> Generator[Document]:
+    def source2dicts(self, source: Source) -> Iterable[Document]:
         '''
         Given a CSV source file, returns an iterable of extracted documents.
 

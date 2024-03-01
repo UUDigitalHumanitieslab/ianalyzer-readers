@@ -1,7 +1,7 @@
 import logging
 import openpyxl
 from openpyxl.worksheet.worksheet import Worksheet
-from typing import Generator
+from typing import Iterable
 
 from .core import Reader, Document, Source
 from .. import extract
@@ -46,7 +46,7 @@ class XLSXReader(Reader):
     '''
 
 
-    def source2dicts(self, source: Source) -> Generator[Document]:
+    def source2dicts(self, source: Source) -> Iterable[Document]:
         '''
         Given an XLSX source file, returns an iterable of extracted documents.
 
