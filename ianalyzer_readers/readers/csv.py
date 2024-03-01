@@ -27,6 +27,8 @@ class CSVReader(Reader):
     - one document per row (this is the default)
     - each document spans a number of consecutive rows. In this case, there should be a
         column that indicates the identity of the document.
+
+    In addition to generic extractor classes, this reader supports the `CSV` extractor.
     '''
 
     field_entry = None

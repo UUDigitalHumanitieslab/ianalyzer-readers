@@ -24,6 +24,8 @@ class XLSXReader(Reader):
         column that indicates the identity of the document.
 
     The XLSXReader will only look at the _first_ sheet in each file.
+
+    In addition to generic extractor classes, this reader supports the `CSV` extractor.
     '''
 
     field_entry = None
