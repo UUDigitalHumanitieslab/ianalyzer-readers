@@ -90,6 +90,7 @@ class Choice(Extractor):
     Parameters:
         *extractors: extractors to choose from. These should be listed in descending
             order of preference.
+        **kwargs: additional options to pass on to `Extractor`.
     '''
 
     def __init__(self, *extractors: Extractor, **kwargs):
@@ -117,6 +118,7 @@ class Combined(Extractor):
 
     Parameters:
         *extractors: extractors to combine.
+        **kwargs: additional options to pass on to `Extractor`.
     '''
 
     def __init__(self, *extractors: Extractor, **kwargs):
@@ -148,7 +150,7 @@ class Backup(Extractor):
     Parameters:
         *extractors: extractors to use. These should be listed in descending order of
             preference.
-
+        **kwargs: additional options to pass on to `Extractor`.
     '''
     def __init__(self, *extractors: Extractor, **kwargs):
         self.extractors = list(extractors)
@@ -172,6 +174,7 @@ class Constant(Extractor):
 
     Parameters:
         value: the value that should be "extracted".
+        **kwargs: additional options to pass on to `Extractor`.
     '''
 
     def __init__(self, value: Any, *nargs, **kwargs):
@@ -191,6 +194,7 @@ class Metadata(Extractor):
     Parameters:
         key: the key in the metadata dictionary that should be
             extracted.
+        **kwargs: additional options to pass on to `Extractor`.
     '''
 
     def __init__(self, key: str, *nargs, **kwargs):
@@ -214,6 +218,7 @@ class Pass(Extractor):
     
     Parameters:
         extractor: the extractor of which the value should be passed
+        **kwargs: additional options to pass on to `Extractor`.
     '''
 
     def __init__(self, extractor: Extractor, *nargs, **kwargs):
@@ -232,6 +237,9 @@ class Order(Extractor):
     implement some kind of counter in its `source2dicts` method. The `Reader` subclasses
     in this package all implement this, and so `Order` can safely be used in any of them.
     However, custom `Reader` subclasses may not support this extractor.
+
+    Parameters:
+        **kwargs: additional options to pass on to `Extractor`.
     '''
 
     def _apply(self, index=None, *nargs, **kwargs):
@@ -306,6 +314,7 @@ class XML(Extractor):
             instead of using the content string or an attribute. Keep in mind
             that the soup passed could be `None`.
             `attribute` and `flatten` will do nothing if this property is set.
+        **kwargs: additional options to pass on to `Extractor`.
     '''
 
     def __init__(self,
@@ -477,6 +486,7 @@ class FilterAttribute(XML):
 
     Parameters:
         attribute_filter: Specify an attribute / value pair by which to select content
+        **kwargs: additional options to pass on to `XML`.
     '''
 
     def __init__(self,
@@ -525,10 +535,12 @@ class CSV(Extractor):
     It should be used in readers based on `CSVReader` or `XLSXReader`.
 
     Parameters:
-        multiple: Boolean. If a document spans multiple rows, the extracted value for a field with
-            `multiple = True` is a list of the value in each row. If `multiple = False` (default), only the value
-            from the first row is extracted.
-        convert_to_none: optional, default is `['']`. Listed values are converted to `None`. If `None`/`False`, nothing is converted.
+        multiple: Boolean. If a document spans multiple rows, the extracted value for a
+            field with `multiple = True` is a list of the value in each row. If
+            `multiple = False` (default), only the value from the first row is extracted.
+        convert_to_none: optional, default is `['']`. Listed values are converted to
+            `None`. If `None`/`False`, nothing is converted.
+        **kwargs: additional options to pass on to `Extractor`.
     '''
     def __init__(self,
             field,
@@ -562,6 +574,7 @@ class ExternalFile(Extractor):
 
     Parameters:
         stream_handler: function that will handle the opened file.
+        **kwargs: additional options to pass on to `Extractor`.
     '''
 
     def __init__(self, stream_handler, *nargs, **kwargs):
