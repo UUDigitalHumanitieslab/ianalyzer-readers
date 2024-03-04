@@ -22,12 +22,12 @@ class TestCSVReader(CSVReader):
     fields = [
         Field(
             name='character',
-            extractor=CSV(field='character')
+            extractor=CSV(column='character')
         ),
         Field(
             name='lines',
             extractor=CSV(
-                field='line',
+                column='line',
                 multiple=True,
             )
         )

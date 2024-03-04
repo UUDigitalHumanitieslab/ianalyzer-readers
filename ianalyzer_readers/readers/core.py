@@ -33,6 +33,34 @@ Each document extracted by a Reader is a dictionary, where the keys are names of
 the Reader's `fields`, and the values are based on the extractor of each field.
 '''
 
+class Field(object):
+    '''
+    Fields are the elements of information that you wish to extract from each document.
+
+    Parameters:
+        name:  a short hand name (name), which will be used as its key in the document
+        extractor: an Extractor object that defines how this field's data can be
+            extracted from source documents.
+        required: whether this field is required. The `Reader` class should skip the
+            document is the value for this Field is `None`, though this is not supported
+            for all readers.
+        skip: if `True`, this field will not be included in the results.
+    '''
+
+    def __init__(self,
+                 name: str,
+                 extractor: extract.Extractor = extract.Constant(None),
+                 required: bool = False,
+                 skip: bool = False,
+                 **kwargs
+                 ):
+
+        self.name = name
+        self.extractor = extractor
+        self.required = required
+        self.skip = skip
+
+
 class Reader(object):
     '''
     A base class for readers. Readers are objects that can generate documents
@@ -66,7 +94,7 @@ class Reader(object):
 
 
     @property
-    def fields(self) -> List:
+    def fields(self) -> List[Field]:
         '''
         The list of fields that are extracted from documents.
 
@@ -121,7 +149,7 @@ class Reader(object):
         '''
         raise NotImplementedError('Reader missing source2dicts implementation')
 
-    def documents(self, sources:Iterable[Source]=None) -> Iterable[Document]:
+    def documents(self, sources:Iterable[Source] = None) -> Iterable[Document]:
         '''
         Returns an iterable of extracted documents from source files.
 
@@ -142,7 +170,7 @@ class Reader(object):
                 )
                 )
 
-    def _reject_extractors(self, *inapplicable_extractors):
+    def _reject_extractors(self, *inapplicable_extractors: extract.Extractor):
         '''
         Raise errors if any fields use any of the given extractors.
 
@@ -157,32 +185,3 @@ class Reader(object):
             if isinstance(field.extractor, inapplicable_extractors):
                 raise RuntimeError(
                     "Specified extractor method cannot be used with this type of data")
-
-# Fields ######################################################################
-
-class Field(object):
-    '''
-    Fields are the elements of information that you wish to extract from each document.
-
-    Parameters:
-        name:  a short hand name (name), which will be used as its key in the document
-        extractor: an Extractor object that defines how this field's data can be
-            extracted from source documents.
-        required: whether this field is required. The `Reader` class should skip the
-            document is the value for this Field is `None`, though this is not supported
-            for all readers.
-        skip: if `True`, this field will not be included in the results.
-    '''
-
-    def __init__(self,
-                 name=None,
-                 extractor=extract.Constant(None),
-                 required=False,
-                 skip=False,
-                 **kwargs
-                 ):
-
-        self.name = name
-        self.extractor = extractor
-        self.required = required
-        self.skip = skip

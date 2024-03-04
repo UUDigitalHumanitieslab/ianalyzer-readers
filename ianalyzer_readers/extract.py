@@ -11,7 +11,7 @@ import html
 import re
 import logging
 import traceback
-from typing import Any, Dict, Callable, Union, List, Pattern
+from typing import Any, Dict, Callable, Union, List, Pattern, Optional
 logger = logging.getLogger()
 
 
@@ -29,9 +29,8 @@ class Extractor(object):
     '''
 
     def __init__(self,
-                 applicable=None,  # Predicate that takes metadata and decides whether
-                 # this extractor is applicable. None means always.
-                 transform=None   # Optional function to postprocess extracted value
+                 applicable: Optional[Callable[[Dict], bool]] = None,
+                 transform: Optional[Callable] = None
                  ):
         self.transform = transform
         self.applicable = applicable
@@ -97,7 +96,7 @@ class Choice(Extractor):
         self.extractors = list(extractors)
         super().__init__(**kwargs)
 
-    def _apply(self, metadata, *nargs, **kwargs):
+    def _apply(self, metadata: Dict, *nargs, **kwargs):
         for extractor in self.extractors:
             if extractor.applicable is None or extractor.applicable(metadata):
                 return extractor.apply(metadata=metadata, *nargs, **kwargs)
@@ -201,7 +200,7 @@ class Metadata(Extractor):
         self.key = key
         super().__init__(*nargs, **kwargs)
 
-    def _apply(self, metadata, *nargs, **kwargs):
+    def _apply(self, metadata: Dict, *nargs, **kwargs):
         return metadata.get(self.key)
 
 class Pass(Extractor):
@@ -242,7 +241,7 @@ class Order(Extractor):
         **kwargs: additional options to pass on to `Extractor`.
     '''
 
-    def _apply(self, index=None, *nargs, **kwargs):
+    def _apply(self, index: int = None, *nargs, **kwargs):
         return index
 
 class XML(Extractor):
@@ -318,9 +317,9 @@ class XML(Extractor):
     '''
 
     def __init__(self,
-                 tag: Union[str, Pattern, List[Union[str, Pattern]], None] =[],
-                 parent_level: Union[int, None] = None,
-                 attribute: Union[str, None] = None,
+                 tag: Union[str, Pattern, List[Union[str, Pattern]], None] = [],
+                 parent_level: Optional[int] = None,
+                 attribute: Optional[str] = None,
                  flatten: bool = False,
                  toplevel: bool = False,
                  recursive: bool = False,
@@ -334,8 +333,8 @@ class XML(Extractor):
                      'xml_tag_toplevel': None,
                      'xml_tag_entry': None
                  },
-                 transform_soup_func: Union[Callable, None] = None,
-                 extract_soup_func: Union[Callable, None] = None,
+                 transform_soup_func: Optional[Callable] = None,
+                 extract_soup_func: Optional[Callable] = None,
                  *nargs,
                  **kwargs
                  ):
@@ -490,7 +489,7 @@ class FilterAttribute(XML):
     '''
 
     def __init__(self,
-                 attribute_filter={
+                 attribute_filter: Dict = {
                      'attribute': None,
                      'value': None},
                  *nargs,
@@ -535,7 +534,8 @@ class CSV(Extractor):
     It should be used in readers based on `CSVReader` or `XLSXReader`.
 
     Parameters:
-        multiple: Boolean. If a document spans multiple rows, the extracted value for a
+        column: The name of the column from which to extract the value.
+        multiple: If a document spans multiple rows, the extracted value for a
             field with `multiple = True` is a list of the value in each row. If
             `multiple = False` (default), only the value from the first row is extracted.
         convert_to_none: optional, default is `['']`. Listed values are converted to
@@ -543,11 +543,11 @@ class CSV(Extractor):
         **kwargs: additional options to pass on to `Extractor`.
     '''
     def __init__(self,
-            field,
-            multiple=False,
-            convert_to_none = [''],
+            column: str,
+            multiple: bool = False,
+            convert_to_none: List[str] = [''],
             *nargs, **kwargs):
-        self.field = field
+        self.field = column
         self.multiple = multiple
         self.convert_to_none = convert_to_none or []
         super().__init__(*nargs, **kwargs)
@@ -577,7 +577,7 @@ class ExternalFile(Extractor):
         **kwargs: additional options to pass on to `Extractor`.
     '''
 
-    def __init__(self, stream_handler, *nargs, **kwargs):
+    def __init__(self, stream_handler: Callable, *nargs, **kwargs):
         super().__init__(*nargs, **kwargs)
         self.stream_handler = stream_handler
 
