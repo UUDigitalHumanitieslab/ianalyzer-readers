@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document>
+    <meta>
+        <title>Hamlet</title>
+        <author>William Shakespeare</author>
+    </meta>
+    <content>
+        <act n="I">
+            <scene n="V">
+                <lines character="HAMLET">
+                    <l>Whither wilt thou lead me? Speak, I'll go no further.</l>
+                </lines>
+                <lines character="GHOST">
+                    <l>Mark me.</l>
+                </lines>
+                <lines character="HAMLET">
+                    <l>I will.</l>
+                </lines>
+                <lines character="GHOST">
+                    <l>My hour is almost come,</l>
+                    <l>When I to sulph'rous and tormenting flames</l>
+                    <l>Must render up myself.</l>
+                </lines>
+                <lines character="HAMLET">
+                    <l>Alas, poor ghost!</l>
+                </lines>
+                <lines character="GHOST">
+                    <l>Pity me not, but lend thy serious hearing</l>
+                    <l>To what I shall unfold.</l>
+                </lines>
+                <lines character="HAMLET">
+                    <l>Speak, I am bound to hear.</l>
+                </lines>
+            </scene>
+        </act>
+    </content>
+</document>
