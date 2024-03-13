@@ -33,7 +33,7 @@ classifiers = [
 Repository = "https://github.com/UUDigitalHumanitieslab/I-analyzer"
 
 [project.optional-dependencies]
-dev = ['pytest']
+dev = ['pytest', 'mkdocs', 'mkdocstrings-python']
 
 [tool.setuptools]
 packages = [
