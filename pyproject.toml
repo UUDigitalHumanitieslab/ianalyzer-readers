@@ -31,6 +31,7 @@ classifiers = [
 
 [project.urls]
 Repository = "https://github.com/UUDigitalHumanitieslab/I-analyzer"
+Documentation = "https://ianalyzer-readers.readthedocs.io/"
 
 [project.optional-dependencies]
 dev = ['pytest', 'mkdocs', 'mkdocstrings-python']
