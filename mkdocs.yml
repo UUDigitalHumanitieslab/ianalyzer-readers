@@ -1,0 +1,18 @@
+site_name: I-analyzer Readers
+repo_url: https://github.com/UUDigitalHumanitieslab/ianalyzer-readers
+plugins:
+  - mkdocstrings
+nav:
+  - 'index.md'
+  - 'usage.md'
+  - 'examples.md'
+  - 'api.md'
+watch:
+  - docs
+  - ianalyzer_readers
+plugins:
+- mkdocstrings:
+    handlers:
+      python:
+        options:
+          heading_level: 3

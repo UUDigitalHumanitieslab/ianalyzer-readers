@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ianalyzer_readers"
-version = "0.0.0"
+version = "0.1.0"
 authors = [
   {name="Utrecht University, Centre for Digital Humanities - Research Software Lab", email="cdh@uu.nl"}
 ]
@@ -31,9 +31,10 @@ classifiers = [
 
 [project.urls]
 Repository = "https://github.com/UUDigitalHumanitieslab/I-analyzer"
+Documentation = "https://ianalyzer-readers.readthedocs.io/"
 
 [project.optional-dependencies]
-dev = ['pytest']
+dev = ['pytest', 'mkdocs', 'mkdocstrings-python']
 
 [tool.setuptools]
 packages = [

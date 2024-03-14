@@ -1,5 +1,8 @@
 # I-analyzer Readers
 
+[![Python package](https://github.com/UUDigitalHumanitieslab/ianalyzer-readers/actions/workflows/python-package.yml/badge.svg)](https://github.com/UUDigitalHumanitieslab/ianalyzer-readers/actions/workflows/python-package.yml)
+[![Documentation Status](https://readthedocs.org/projects/ianalyzer-readers/badge/?version=latest)](https://ianalyzer-readers.readthedocs.io/en/latest/?badge=latest)
+
 `ianalyzer-readers` is a python module to extract data from XML, HTML, CSV or XLSX files.
 
 This module was originally created for [I-analyzer](https://github.com/UUDigitalHumanitieslab/I-analyzer), a web application that extracts data from a variety of datasets, indexes them and presents a search interface. To do this, we wanted a way to extract data from source files without having to write a new script "from scratch" for each dataset, and an API that would work the same regardless of the source file type.
@@ -28,11 +31,11 @@ What we find especially useful is that all subclasses of `Reader` have the same 
 
 ## Usage
 
-*Usage documentation is not yet complete.*
+Typical usage of this package would be to make a custom Python class for a dataset from which you want to extract a list of documents. We call this a `Reader`. This package provides the base classes to structure readers, and provides extraction utilities for several file types.
 
-Typical use is that, for each dataset you want to extract, you create a subclass of `Reader` and define required properties. See the [CSV test corpus](./tests/mock_csv_corpus.py) for an example.
+For detailed usage documention and examples, visit [ianalyzer-readers.readthedocs.io](https://ianalyzer-readers.readthedocs.io/en/latest/)
 
-After defining the class for your dataset, you can call the `documents()` method to get a generator of document dictionaries.
+If this site is unavailable, you can also generate the documentation site locally; see the [contributing guide](./CONTRIBUTING.md) for insttructions.
 
 ## Licence
 

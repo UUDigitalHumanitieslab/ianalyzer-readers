@@ -1,4 +1,4 @@
-from ianalyzer_readers.readers.csv import CSVReader
+from ianalyzer_readers.readers.xlsx import XLSXReader
 from ianalyzer_readers.readers.core import Field
 from ianalyzer_readers.extract import CSV
 import os
@@ -6,11 +6,8 @@ import os
 here = os.path.abspath(os.path.dirname(__file__))
 
 
-class TestCSVReader(CSVReader):
-    """Example CSV corpus class for testing"""
-
-    data_directory = os.path.join(here, 'csv_example')
-    field_entry = 'character'
+class HamletXLSXReader(XLSXReader):
+    data_directory = os.path.join(here, 'xlsx_example')
 
     def sources(self, **kwargs):
         for filename in os.listdir(self.data_directory):
@@ -22,13 +19,10 @@ class TestCSVReader(CSVReader):
     fields = [
         Field(
             name='character',
-            extractor=CSV(column='character')
+            extractor=CSV(column='Character')
         ),
         Field(
             name='lines',
-            extractor=CSV(
-                column='line',
-                multiple=True,
-            )
+            extractor=CSV(column='Lines')
         )
     ]

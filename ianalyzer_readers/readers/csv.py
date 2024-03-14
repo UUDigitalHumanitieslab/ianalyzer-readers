@@ -1,11 +1,12 @@
 '''
-Module for the CSV reader
+This module defines the CSV reader.
 
 Extraction is based on python's `csv` library.
 '''
 
 from .. import extract
-from .core import Reader
+from typing import List, Dict, Iterable
+from .core import Reader, Document, Source
 import csv
 import sys
 
@@ -16,38 +17,56 @@ logger = logging.getLogger()
 
 class CSVReader(Reader):
     '''
-    An CSVReader extracts data from comma separated value files.
+    A base class for Readers of .csv (comma separated value) files.
 
-    By default, the reader will extract one document per row, but you
-    can also set `field_entry` to group grows.
+    The CSVReader is designed for .csv or .tsv files that have a header row, and where
+    each file may list multiple documents.
+
+    The data should be structured in one of the following ways:
+    
+    - one document per row (this is the default)
+    - each document spans a number of consecutive rows. In this case, there should be a
+        column that indicates the identity of the document.
+
+    In addition to generic extractor classes, this reader supports the `CSV` extractor.
     '''
 
     field_entry = None
     '''
-    If applicable, the field that identifies entries. Subsequent rows with the same
-    value for this field are treated as a single document. If left blank, each row
+    If applicable, the name of the column that identifies entries. Subsequent rows with the
+    same value for this column are treated as a single document. If left blank, each row
     is treated as a document.
     '''
 
     required_field = None
     '''
-    Specifies a required field, for example the main content. Rows with
-    an empty value for `required_field` will be skipped.
+    Specifies the name of a required column in the CSV data, for example the main content.
+    Rows with an empty value for `required_field` will be skipped.
     '''
 
     delimiter = ','
     '''
-    The delimiter for the CSV reader.
+    The column delimiter used in the CSV data
     '''
 
     skip_lines = 0
     '''
-    Number of lines to skip before reading the header
+    Number of lines in the file to skip before reading the header. Can be used when files
+    use a fixed "preamble", e.g. to describe metadata or provenance.
     '''
 
-    def source2dicts(self, source):
+    def source2dicts(self, source: Source) -> Iterable[Document]:
         '''
-        Generate document dicts from a CSV file
+        Given a CSV source file, returns an iterable of extracted documents.
+
+        Parameters:
+            source: the source file to extract. This can be a string with the path to
+                the file, or a tuple with a path and a dictionary containing metadata.
+        
+        Returns:
+            an iterable of document dictionaries. Each of these is a dictionary,
+                where the keys are names of this Reader's `fields`, and the values
+                are based on the extractor of each field.
         '''
 
         # make sure the field size is as big as the system permits
@@ -88,24 +107,32 @@ class CSVReader(Reader):
                         document_id = identifier
 
                 if is_new_document and rows:
-                    yield self.document_from_rows(rows, metadata, index)
+                    yield self._document_from_rows(rows, metadata, index)
                     rows = [row]
                     index += 1
                 else:
                     rows.append(row)
 
-            yield self.document_from_rows(rows, metadata, index)
+            yield self._document_from_rows(rows, metadata, index)
 
-    def document_from_rows(self, rows, metadata, row_index):
+    def _document_from_rows(self, rows: List[Dict], metadata: Dict, doc_index: int) -> Document:
         '''
         Extract a single document from a list of rows
+
+        Parameters:
+            rows: a list of row data. Since the CSVReader uses `csv.DictReader`, each row
+                is expected to be a dictionary.
+            metadata: a dictionary with file metadata. 
+            doc_index: the index of this document in the source file. The first document
+                extracted from a file should have index 0, the second should have index 1,
+                and so forth.
         '''
 
         doc = {
             field.name: field.extractor.apply(
                 # The extractor is put to work by simply throwing at it
                 # any and all information it might need
-                rows=rows, metadata = metadata, index=row_index
+                rows=rows, metadata = metadata, index=doc_index
             )
             for field in self.fields if not field.skip
         }
