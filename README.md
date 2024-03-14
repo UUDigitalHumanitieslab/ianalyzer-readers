@@ -1,5 +1,6 @@
 # I-analyzer Readers
 
+[![Python package](https://github.com/UUDigitalHumanitieslab/ianalyzer-readers/actions/workflows/python-package.yml/badge.svg)](https://github.com/UUDigitalHumanitieslab/ianalyzer-readers/actions/workflows/python-package.yml)
 [![Documentation Status](https://readthedocs.org/projects/ianalyzer-readers/badge/?version=latest)](https://ianalyzer-readers.readthedocs.io/en/latest/?badge=latest)
 
 `ianalyzer-readers` is a python module to extract data from XML, HTML, CSV or XLSX files.
