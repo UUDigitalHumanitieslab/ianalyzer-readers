@@ -49,8 +49,20 @@ def test_csv():
     corpus = TestCSVReader()
 
     sources = list(corpus.sources())
-    assert len(sources) == 1 and sources[0][1] == {'filename': 'example.csv'}
+    assert len(sources) == 1
 
     docs = corpus.source2dicts(sources[0])
     for doc, target in zip(docs, target_documents):
         assert doc == target
+
+def test_csv_supported_source_types():
+    corpus = TestCSVReader()
+    source = next(corpus.sources())
+    assert isinstance(source, str)
+
+    # should work with a path as the source
+    list(corpus.source2dicts(source))
+
+    # should work with a path + metadata as the source
+    source_with_metadata = source, {}
+    list(corpus.source2dicts(source_with_metadata))
