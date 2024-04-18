@@ -586,3 +586,11 @@ class ExternalFile(Extractor):
         Extract `associated_file` from metadata and call `self.stream_handler` with file stream.
         '''
         return self.stream_handler(open(metadata['associated_file'], 'r'))
+
+
+class RDF(Extractor):
+    def __init__(self, node, *nargs, **kwargs):
+        super().__init__(*nargs, **kwargs)
+
+    def _apply(self):
+        return 'nothing'
