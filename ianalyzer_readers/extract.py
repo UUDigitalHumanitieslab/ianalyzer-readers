@@ -11,6 +11,7 @@ import html
 import re
 import logging
 import traceback
+from rdflib import BNode, Graph, URIRef
 from typing import Any, Dict, Callable, Union, List, Pattern, Optional
 logger = logging.getLogger()
 
@@ -589,8 +590,15 @@ class ExternalFile(Extractor):
 
 
 class RDF(Extractor):
-    def __init__(self, node, *nargs, **kwargs):
+    def __init__(self, predicate: URIRef, node_type: str = 'object', *nargs, **kwargs):
+        self.predicate = predicate
+        self.node_type = node_type
         super().__init__(*nargs, **kwargs)
 
-    def _apply(self):
-        return 'nothing'
+    def _apply(self, subject: BNode = None, graph: Graph = None, metadata: dict = {}) -> str | None:
+        if self.node_type == 'subject':
+            return subject
+        else:
+            objects = list(graph.objects(subject, self.predicate))
+            if len(objects):
+                return objects[0].value

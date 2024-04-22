@@ -1,4 +1,4 @@
-from .ttl_reader import EuParlRDFReader
+from .rdf_reader import EuParlRDFReader
 
 target_documents = [
     {
@@ -9,9 +9,14 @@ target_documents = [
 ]
 
 
-def test_rdf():
+def test_rdf_number_documents():
     reader = EuParlRDFReader()
     docs = reader.documents()
+    assert len(list(docs)) == 10
 
+
+def test_rdf_document_content():
+    reader = EuParlRDFReader()
+    docs = reader.documents()
     for doc, target in zip(docs, target_documents):
         assert doc == target
