@@ -275,7 +275,6 @@ class XML(Extractor):
 
     Parameters:
         tag: Tag to select. Can be:
-         
             - a string
             - a compiled regular expression (the output of `re.compile`).
             - a list of strings or regular expression pattterns. In that case, it is read
@@ -297,10 +296,15 @@ class XML(Extractor):
             it only looks for direct children.
         multiple: If `False`, the extractor will extract the first matching element. If 
             `True`, it will extract a list of all matching elements.
-        secondary_tag: Whether the tag's content should match a given metadata field
-            ('match') or string ('exact')
+        secondary_tag: Adds a condition that the tag must have a sibling tag for which the
+            text content matches a metadata field or a string. The value is a dictionary,
+            with two keys: `'tag'` gives the name of the sibling tag. The other key can be
+            `'exact'`, which gives a string to match, or `'match'`, which gives the name of
+            a metadata field against which to match the content. If this field has
+            `external_file=True`, then `'match'` can also give the name of another ifeld in
+            the reader, which as `external_file=False`.
         external_file: This property can be set to look through a secondary XML file
-            (usually one containing metadata). It requires that the pass metadata have an
+            (usually one containing metadata). It requires that the passed metadata have an
             `'external_file'` key that specifies the path to the file. This parameter
             specifies the toplevel tag and entry level tag for that file; if set, the
             extractor will extract this field from the external file instead of the current
