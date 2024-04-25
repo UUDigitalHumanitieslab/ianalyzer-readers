@@ -145,6 +145,11 @@ doc_nested = '''
 </play>
 '''
 
+def test_xml_multiple_attributes(tmpdir):
+    extractor = XML(tag='lines', attribute='character', multiple=True)
+    reader = make_test_reader(extractor, 'play', 'scene', doc_nested, tmpdir)
+    assert_extractor_output(reader, ['HAMLET', 'GHOST'])
+
 
 def test_xml_recursive(tmpdir):
     extractor = XML(tag='l')
