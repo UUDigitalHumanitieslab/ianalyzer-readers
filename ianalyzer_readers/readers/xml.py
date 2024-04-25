@@ -230,6 +230,8 @@ class XMLReader(Reader):
         '''
         if toplevel_tag == None:
             toplevel_tag = self._get_tag_requirements(self.tag_toplevel, metadata)
+        else:
+            toplevel_tag = self._get_tag_requirements(toplevel_tag, metadata)
 
         return soup.find(**toplevel_tag) if toplevel_tag else soup
 

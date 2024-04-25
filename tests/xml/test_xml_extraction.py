@@ -214,7 +214,69 @@ doc_longer = '''
 </play>
 '''
 
+
 def test_xml_secondary_tag(tmpdir):
     extractor = XML('l', secondary_tag={'tag': 'character', 'exact': 'GHOST'})
     reader = make_test_reader(extractor, 'play', 'scene', doc_longer, tmpdir)
     assert_extractor_output(reader, 'Mark me.')
+
+doc_with_title = '''
+<?xml version="1.0" encoding="UTF-8"?>
+<play>
+    <title>Hamlet</title>
+    <lines>
+        <character>HAMLET</character>
+        <l>Whither wilt thou lead me? Speak, I'll go no further.</l>
+    </lines>
+</play>
+'''
+
+external_doc = '''
+<?xml version="1.0" encoding="UTF-8"?>
+<bibliography>
+    <play>        
+        <title>Doctor Faustus</title>
+        <author>Christopher Marlowe</author>
+    </play>
+    <play>
+        <title>Hamlet</title>
+        <author>William Shakespeare</author>
+    </play>
+</bibliography>
+'''
+
+def test_xml_external_file(tmpdir):
+    path = os.path.join(tmpdir, 'test.xml')
+    with open(path, 'w') as f:
+        f.write(doc_with_title)
+    external_path = os.path.join(tmpdir, 'metadata.xml')
+    with open(external_path, 'w') as f:
+        f.write(external_doc)
+
+    class TestReader(XMLReader):
+        data_directory = tmpdir
+        tag_toplevel = 'play'
+        tag_entry = 'lines'
+
+        def sources(self, *args, **kwargs):
+            yield path, {'external_file': external_path}
+        
+        fields = [
+            Field(
+                name='author',
+                extractor=XML(
+                    'author',
+                    secondary_tag={'tag': 'title', 'match': 'title'},
+                    external_file={'xml_tag_toplevel': 'bibliography', 'xml_tag_entry': None}
+                )
+            ),
+            Field(
+                name='title',
+                extractor=XML('title', toplevel=True)
+            )
+        ]
+    
+    reader = TestReader()
+    doc = next(reader.documents())
+
+    assert doc['author'] == 'William Shakespeare'

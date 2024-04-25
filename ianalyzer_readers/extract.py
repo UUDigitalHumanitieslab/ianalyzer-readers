@@ -301,7 +301,7 @@ class XML(Extractor):
             with two keys: `'tag'` gives the name of the sibling tag. The other key can be
             `'exact'`, which gives a string to match, or `'match'`, which gives the name of
             a metadata field against which to match the content. If this field has
-            `external_file=True`, then `'match'` can also give the name of another ifeld in
+            `external_file=True`, then `'match'` can also give the name of another field in
             the reader, which as `external_file=False`.
         external_file: This property can be set to look through a secondary XML file
             (usually one containing metadata). It requires that the passed metadata have an
@@ -309,6 +309,7 @@ class XML(Extractor):
             specifies the toplevel tag and entry level tag for that file; if set, the
             extractor will extract this field from the external file instead of the current
             source file.
+            The value for `entry_tag` is only used if the extractor does not have a `se
         transform_soup_func: A function to transform the soup directly after the tag is
             selected, before further processing (attributes, flattening, etc) to extract
             the value from it. Keep in mind that the soup passed could be `None` if no
