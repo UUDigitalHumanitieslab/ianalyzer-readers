@@ -189,3 +189,27 @@ def test_xml_toplevel_tag_dict(tmpdir):
     reader = make_test_reader(extractor, toplevel_tag, 'lines', doc_nested, tmpdir)
     assert_extractor_output(reader, 'To be, or not to be, that is the question.')
 
+doc_longer = '''
+<?xml version="1.0" encoding="UTF-8"?>
+<play>
+    <scene>
+        <lines>
+            <character>HAMLET</character>
+            <l>Whither wilt thou lead me? Speak, I'll go no further.</l>
+        </lines>
+        <lines>
+            <character>GHOST</character>
+            <l>Mark me.</l>
+        </lines>
+        <lines>
+            <character>HAMLET</character>
+            <l>I will.</l>
+        </lines>
+    </scene>
+</play>
+'''
+
+def test_xml_secondary_tag(tmpdir):
+    extractor = XML('l', secondary_tag={'tag': 'character', 'exact': 'GHOST'})
+    reader = make_test_reader(extractor, 'play', 'scene', doc_longer, tmpdir)
+    assert_extractor_output(reader, 'Mark me.')
