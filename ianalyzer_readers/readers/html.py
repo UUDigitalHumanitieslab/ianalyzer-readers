@@ -22,8 +22,7 @@ class HTMLReader(XMLReader):
     It is based on the XMLReader and supports the same options (`tag_toplevel` and
     `tag_entry`).
 
-    In addition to generic extractor classes, this reader supports the `XML` and
-    `FilterAttribute` extractors.
+    In addition to generic extractor classes, this reader supports the `XML` extractor.
     '''
 
     def source2dicts(self, source: Source) -> Iterable[Document]:

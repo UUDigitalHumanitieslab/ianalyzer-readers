@@ -41,8 +41,7 @@ class XMLReader(Reader):
     The Reader is suitable for datasets where each file should be extracted as a single document, or
     ones where each file contains multiple documents.
 
-    In addition to generic extractor classes, this reader supports the `XML` and
-    `FilterAttribute` extractors.
+    In addition to generic extractor classes, this reader supports the `XML` extractor.
     '''
 
     tag_toplevel: TagSpecification = None

@@ -4,7 +4,7 @@ import re
 from ianalyzer_readers.readers.xml import XMLReader
 from ianalyzer_readers.extract import XML
 from ianalyzer_readers.readers.core import Field
-from ianalyzer_readers.utils import XMLTag
+from ianalyzer_readers.utils import XMLTag, ParentTag
 
 
 def make_test_reader(extractor, toplevel_tag, entry_tag, doc, tmpdir):
@@ -65,11 +65,6 @@ def test_xml_no_tag(tmpdir):
     reader = make_test_reader(extractor, XMLTag('play'), XMLTag('character'), basic_doc, tmpdir)
     assert_extractor_output(reader, 'HAMLET')
 
-
-def test_xml_parent_level(tmpdir):
-    extractor = XML(XMLTag('character'), parent_level=1)
-    reader = make_test_reader(extractor, XMLTag('play'), XMLTag('l'), basic_doc, tmpdir)
-    assert_extractor_output(reader, 'HAMLET')
 
 
 doc_with_attribute = '''
@@ -145,6 +140,17 @@ doc_nested = '''
     </act>
 </play>
 '''
+
+
+def test_xml_parent_tag(tmpdir):
+    extractor = XML(ParentTag(), attribute='n')
+    reader = make_test_reader(extractor, XMLTag('play'), XMLTag('lines'), doc_nested, tmpdir)
+    assert_extractor_output(reader, 'V')
+
+    extractor = XML(ParentTag(2), attribute='n')
+    reader = make_test_reader(extractor, XMLTag('play'), XMLTag('lines'), doc_nested, tmpdir)
+    assert_extractor_output(reader, 'I')
+
 
 def test_xml_multiple_attributes(tmpdir):
     extractor = XML(XMLTag('lines'), attribute='character', multiple=True)

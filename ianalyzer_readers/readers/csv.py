@@ -71,7 +71,7 @@ class CSVReader(Reader):
 
         # make sure the field size is as big as the system permits
         csv.field_size_limit(sys.maxsize)
-        self._reject_extractors(extract.XML, extract.FilterAttribute)
+        self._reject_extractors(extract.XML)
 
         if isinstance(source, str):
             filename = source

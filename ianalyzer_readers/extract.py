@@ -280,9 +280,6 @@ class XML(Extractor):
             - an XMLTag object
             - a list of XMLTag objects, indicating a chain of descendants.
             - `None`, to select the current head of the tree.
-        parent_level: If set, the extractor will ascend the tree before looking for the
-            indicated `tag`. Useful when you need to select information from a tag's
-            sibling or parent.
         attribute: By default, the extractor will extract the text content of the tag.
             Set this property to extract the value of an _attribute_ instead.
         flatten: When extracting the text content of a tag, `flatten` determines whether
@@ -323,7 +320,6 @@ class XML(Extractor):
 
     def __init__(self,
                  tag: Union[XMLTag, List[XMLTag], None],
-                 parent_level: Optional[int] = None,
                  attribute: Optional[str] = None,
                  flatten: bool = False,
                  toplevel: bool = False,
@@ -340,7 +336,6 @@ class XML(Extractor):
                  ):
 
         self.tag = tag
-        self.parent_level = parent_level
         self.attribute = attribute
         self.flatten = flatten
         self.toplevel = toplevel
@@ -357,12 +352,6 @@ class XML(Extractor):
         extractor.
         '''
 
-        if self.parent_level:
-            count = 0
-            while count < self.parent_level:
-                soup = soup.parent
-                count += 1
-
         # If the tag was a path, walk through it before continuing
         tag = self.tag
         if not tag:
@@ -371,9 +360,7 @@ class XML(Extractor):
             if len(tag) == 0:
                 return soup
             for i in range(0, len(self.tag)-1):
-                if self.tag[i] == '..':
-                    soup = soup.parent
-                elif self.tag[i] == '.':
+                if self.tag[i] == '.':
                     pass
                 else:
                     soup = self.tag[i].find_in_soup(soup)
