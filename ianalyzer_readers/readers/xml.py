@@ -165,23 +165,10 @@ class XMLReader(Reader):
         for field in external_fields:
             bowl = self._bowl_from_soup(
                 soup, field.extractor.external_file['xml_tag_toplevel'])
-            spoon = None
-            if field.extractor.secondary_tag:
-                # find a specific subtree in the xml tree identified by matching a secondary tag
-                try:
-                    spoon = bowl.find(
-                        field.extractor.secondary_tag['tag'],
-                        string=metadata[field.extractor.secondary_tag['match']]).parent
-                except:
-                    logging.debug('tag {} not found in metadata'.format(
-                        field.extractor.secondary_tag
-                    ))
-            if not spoon:
-                spoon = field.extractor.external_file['xml_tag_entry']
             if bowl:
                 external_dict[field.name] = field.extractor.apply(
                     soup_top=bowl,
-                    soup_entry=spoon,
+                    soup_entry=bowl,
                     metadata=metadata
                 )
             else:

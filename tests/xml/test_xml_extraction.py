@@ -216,8 +216,11 @@ doc_longer = '''
 '''
 
 
-def test_xml_secondary_tag(tmpdir):
-    extractor = XML(XMLTag('l'), secondary_tag={'tag': 'character', 'exact': 'GHOST'})
+def test_xml_sibling_tag(tmpdir):
+    extractor = XML(
+        XMLTag('l'),
+        sibling_tag=XMLTag('character', string='GHOST')
+    )
     reader = make_test_reader(extractor, XMLTag('play'), XMLTag('scene'), doc_longer, tmpdir)
     assert_extractor_output(reader, 'Mark me.')
 
@@ -267,7 +270,7 @@ def test_xml_external_file(tmpdir):
                 name='author',
                 extractor=XML(
                     XMLTag('author'),
-                    secondary_tag={'tag': 'title', 'match': 'title'},
+                    sibling_tag = lambda metadata: XMLTag('title', string=metadata['title']),
                     external_file={'xml_tag_toplevel': XMLTag('bibliography'), 'xml_tag_entry': None}
                 )
             ),

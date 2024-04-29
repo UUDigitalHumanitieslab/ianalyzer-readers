@@ -291,10 +291,12 @@ class XML(Extractor):
             `attribute=True` is set.
         toplevel: If `True`, the extractor will search from the toplevel tag of the XML
             document, rather than the entry tag for the document.
-        recursive: If `True`, the extractor will search for `tag` recursively. If `False`,
-            it only looks for direct children.
         multiple: If `False`, the extractor will extract the first matching element. If 
             `True`, it will extract a list of all matching elements.
+        sibling_tag: Adds a condition that the tag must have a sibling tag that matches this
+            specification. Value is either an `XMLTag` or a callable that takes a metadata dict
+            and returns an XMLTag (or None). If `external_file=True`, then the metadata dict
+            will include the values of all fields with `external_file=False`. 
         secondary_tag: Adds a condition that the tag must have a sibling tag for which the
             text content matches a metadata field or a string. The value is a dictionary,
             with two keys: `'tag'` gives the name of the sibling tag. The other key can be
@@ -326,11 +328,7 @@ class XML(Extractor):
                  flatten: bool = False,
                  toplevel: bool = False,
                  multiple: bool = False,
-                 secondary_tag: Dict = {
-                     'tag': None,
-                     'match': None,
-                     'exact': None,
-                 },
+                 sibling_tag: Union[XMLTag, Callable[[Dict], XMLTag], None] = None,
                  external_file: Dict = {
                      'xml_tag_toplevel': None,
                      'xml_tag_entry': None
@@ -347,7 +345,7 @@ class XML(Extractor):
         self.flatten = flatten
         self.toplevel = toplevel
         self.multiple = multiple
-        self.secondary_tag = secondary_tag if secondary_tag['tag'] != None else None
+        self.sibling_tag = sibling_tag
         self.external_file = external_file if external_file['xml_tag_toplevel'] else None
         self.transform_soup_func = transform_soup_func
         self.extract_soup_func = extract_soup_func
@@ -383,22 +381,39 @@ class XML(Extractor):
                     return None
             tag = self.tag[-1]
 
-        # Find and return a tag which is a sibling of a secondary tag
-        # e.g., we need a category tag associated with a specific id
-        if self.secondary_tag:
-            # match metadata field
-            if self.secondary_tag.get('match') is not None:
-                match_string = metadata[self.secondary_tag['match']]
-            elif self.secondary_tag.get('exact') is not None:
-                match_string = self.secondary_tag['exact']
-            sibling = soup.find(self.secondary_tag['tag'], string=match_string)
-            if sibling:
-                return tag.find_in_soup(sibling.parent)
+        # Select by sibling tag
+        soup = self._select_by_sibling_tag(soup, metadata)
+
+        if not soup:
+            return None
 
         if self.multiple:
             return tag.find_all_in_soup(soup)
         else:
             return tag.find_in_soup(soup)
+
+    def _select_by_sibling_tag(self, soup: bs4.element.Tag, metadata: Dict) -> Optional[bs4.element.Tag]:
+        '''
+        Uses `self.sibling_tag` to select a node to search from.
+
+        Parameters:
+            soup: the tag from which to search for the sibling tag.
+            metadata: metadata for the document
+
+        Returns:
+            If a sibling tag is specified, the parent of the matching tag. Returns `None`
+            if the tag is specified but no match is found. If the tag is not specified,
+            returns the current node.
+        '''
+        if callable(self.sibling_tag):
+            sibling_tag = self.sibling_tag(metadata)
+        else:
+            sibling_tag = self.sibling_tag
+        
+        if sibling_tag:
+            return sibling_tag.find_in_soup(soup).parent
+        
+        return soup
 
     def _apply(self, soup_top, soup_entry, *nargs, **kwargs):
         soup = self._select(
@@ -473,57 +488,6 @@ class XML(Extractor):
                 for node in soup if node.attrs.get(self.attribute) is not None
             ]
 
-
-class FilterAttribute(XML):
-    '''
-    This extractor extracts attributes or contents from a BeautifulSoup node.
-
-    It is an extension of the `XML` extractor and adds a single parameter,
-    `attribute_filter`.
-
-    Parameters:
-        attribute_filter: Specify an attribute / value pair by which to select content
-        **kwargs: additional options to pass on to `XML`.
-    '''
-
-    def __init__(self,
-                 attribute_filter: Dict = {
-                     'attribute': None,
-                     'value': None},
-                 *nargs,
-                 **kwargs
-                 ):
-        super().__init__(*nargs, **kwargs)
-        self.attribute_filter = attribute_filter
-
-    def _select(self, soup, metadata):
-        '''
-        Return the BeautifulSoup element that matches the constraints of this
-        extractor.
-        '''
-        # If the tag was a path, walk through it before continuing
-        tag = self.tag
-
-        if isinstance(self.tag, list):
-            if len(tag) == 0:
-                return soup
-            for i in range(0, len(self.tag)-1):
-                if self.tag[i] == '..':
-                    soup = soup.parent
-                elif self.tag[i] == '.':
-                    pass
-                else:
-                    soup = soup.find(self.tag[i], recursive=self.recursive)
-
-                if not soup:
-                    return None
-            tag = self.tag[-1]
-
-        # Find and return (all) relevant BeautifulSoup element(s)
-        if self.multiple:
-            return soup.find_all(tag, recursive=self.recursive)
-        else:
-            return(soup.find(tag, {self.attribute_filter['attribute']: self.attribute_filter['value']}))
 
 class CSV(Extractor):
     '''
