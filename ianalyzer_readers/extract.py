@@ -314,7 +314,6 @@ class XML(Extractor):
                  flatten: bool = False,
                  toplevel: bool = False,
                  multiple: bool = False,
-                 sibling_tag: TagInput = None,
                  external_file: Dict = {
                      'xml_tag_toplevel': None,
                      'xml_tag_entry': None
@@ -330,7 +329,6 @@ class XML(Extractor):
         self.flatten = flatten
         self.toplevel = toplevel
         self.multiple = multiple
-        self.sibling_tag = sibling_tag
         self.external_file = external_file if external_file['xml_tag_toplevel'] else None
         self.transform_soup_func = transform_soup_func
         self.extract_soup_func = extract_soup_func

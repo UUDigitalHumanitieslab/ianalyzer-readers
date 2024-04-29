@@ -295,7 +295,6 @@ def test_xml_external_file(tmpdir):
                         lambda metadata: XMLTag('title', string=metadata['title']),
                         SiblingTag('author')
                     ],
-                    sibling_tag = lambda metadata: XMLTag('title', string=metadata['title']),
                     external_file={'xml_tag_toplevel': XMLTag('bibliography'), 'xml_tag_entry': None}
                 )
             ),
