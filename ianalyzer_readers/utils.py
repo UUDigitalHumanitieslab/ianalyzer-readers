@@ -1,4 +1,4 @@
-from typing import Iterable, Optional
+from typing import Iterable, Optional, Callable, Union
 import bs4
 
 class XMLTag:
@@ -21,6 +21,18 @@ class XMLTag:
         return soup.find_all(*self.args, **self.kwargs)
 
 
+class CurrentTag(XMLTag):
+    '''
+    An XMLTag that will return the current tag.
+    '''
+
+    def __init__(self):
+        pass
+
+    def find_in_soup(self, soup: bs4.PageElement) -> Iterable[bs4.PageElement]:
+        return [soup]
+
+
 class ParentTag(XMLTag):
     '''
     An XMLTag that will select a parent tag based on a fixed level.
@@ -34,8 +46,7 @@ class ParentTag(XMLTag):
         while count < self.level:
             soup = soup.parent if soup else None
             count += 1
-
-        yield soup
+        return [soup]
 
 
 class FindParentTag(XMLTag):
@@ -58,3 +69,26 @@ class SiblingTag(XMLTag):
         
         for tag in soup.find_previous_siblings(*self.args, **self.kwargs):
             yield tag
+
+class TransformTag(XMLTag):
+    '''
+    An XMLTag that will perform a transformation function.
+
+    Parameters:
+        transform: a function to transform
+    '''
+
+    def __init__(
+            self,
+            transform: Callable[[bs4.PageElement], Union[bs4.PageElement, Iterable[bs4.PageElement], None]],
+            returns_multiple=False
+        ):
+        self.transform = transform
+        self.returns_multiple = returns_multiple
+    
+    def find_in_soup(self, soup: bs4.PageElement):
+        result = self.transform(soup)
+        if self.returns_multiple:
+            return result
+        return [result]
+    

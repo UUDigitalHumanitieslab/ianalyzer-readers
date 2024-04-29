@@ -265,9 +265,6 @@ class XML(Extractor):
         providing a list.
     - If you need to return _all_ matching tags, rather than the first match, set
         `multiple=True`.
-    - If needed, set `transform_soup_func` to further modify the matched tag. For
-        instance, you could use built-in parameters to select a tag, and then add a
-        `transform_soup_func` to select a child from it with a more complex condition.
     - Choose how to extract a value: set `attribute`, `flatten`, or `extract_soup_func`
         if needed.
     - The extracted value is a string, or the output of `extract_soup_func`. To further
@@ -294,10 +291,6 @@ class XML(Extractor):
             specifies the toplevel tag and entry level tag for that file; if set, the
             extractor will extract this field from the external file instead of the current
             source file.
-        transform_soup_func: A function to transform the soup directly after the tag is
-            selected, before further processing (attributes, flattening, etc) to extract
-            the value from it. Keep in mind that the soup passed could be `None` if no
-            matching tag is found.
         extract_soup_func: A function to extract a value directly from the soup element,
             instead of using the content string or an attribute. Keep in mind
             that the soup passed could be `None`.
@@ -318,7 +311,6 @@ class XML(Extractor):
                      'xml_tag_toplevel': None,
                      'xml_tag_entry': None
                  },
-                 transform_soup_func: Optional[Callable] = None,
                  extract_soup_func: Optional[Callable] = None,
                  *nargs,
                  **kwargs
@@ -330,7 +322,6 @@ class XML(Extractor):
         self.toplevel = toplevel
         self.multiple = multiple
         self.external_file = external_file if external_file['xml_tag_toplevel'] else None
-        self.transform_soup_func = transform_soup_func
         self.extract_soup_func = extract_soup_func
         super().__init__(*nargs, **kwargs)
 
@@ -376,13 +367,9 @@ class XML(Extractor):
         
         if self.multiple:
             results = list(results_generator)
-            if self.transform_soup_func:
-                results = map(self.transform_soup_func, results)
             return list(map(self._extract, results))
         else:
             result = next(results_generator, None)
-            if self.transform_soup_func:
-                result = self.transform_soup_func(result)
             return self._extract(result)
 
     def _extract(self, soup: Optional[bs4.PageElement]):

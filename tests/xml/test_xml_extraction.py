@@ -4,7 +4,9 @@ import re
 from ianalyzer_readers.readers.xml import XMLReader
 from ianalyzer_readers.extract import XML
 from ianalyzer_readers.readers.core import Field
-from ianalyzer_readers.utils import XMLTag, ParentTag, FindParentTag, SiblingTag
+from ianalyzer_readers.utils import (
+    XMLTag, ParentTag, FindParentTag, SiblingTag, TransformTag
+) 
 
 
 def make_test_reader(extractor, toplevel_tag, entry_tag, doc, tmpdir):
@@ -184,9 +186,9 @@ def test_xml_tag_list(tmpdir):
     assert_extractor_output(reader, 'Whither wilt thou lead me? Speak, I\'ll go no further.')
 
 
-def test_xml_transform_soup_func(tmpdir):
+def test_xml_transform_tag(tmpdir):
     find_location = lambda soup: soup.find_previous_sibling('location')
-    extractor = XML(None, transform_soup_func=find_location)
+    extractor = XML(TransformTag(find_location))
     reader = make_test_reader(extractor, XMLTag('play'), XMLTag('lines'), doc_nested, tmpdir)
     assert_extractor_output(reader, 'A more remote part of the Castle.')
 
