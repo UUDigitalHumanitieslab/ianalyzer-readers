@@ -260,11 +260,9 @@ class XML(Extractor):
         setting `external_file`.
     - Choose where to start searching. The default searching point is the entry tag
         for the document, but you can also start from the top of the document by setting
-        `toplevel`. For either of these tags, you can set `parent_level` to select
-        an ancestor to search from. For instance, `parent_level=1` will search from the 
-        parent of the selected tag.
-    - Choose the query to describe the tag(s) you need. Set `tag`, `recursive`,
-        `secondary_tag`.
+        `toplevel`.
+    - Describe the tag you need as an XMLTag object. You can also use a chain of queries by
+        providing a list.
     - If you need to return _all_ matching tags, rather than the first match, set
         `multiple=True`.
     - If needed, set `transform_soup_func` to further modify the matched tag. For
@@ -290,10 +288,6 @@ class XML(Extractor):
             document, rather than the entry tag for the document.
         multiple: If `False`, the extractor will extract the first matching element. If 
             `True`, it will extract a list of all matching elements.
-        sibling_tag: Adds a condition that the tag must have a sibling tag that matches this
-            specification. Value is either an `XMLTag` or a callable that takes a metadata dict
-            and returns an XMLTag (or None). If `external_file=True`, then the metadata dict
-            will include the values of all fields with `external_file=False`. 
         external_file: This property can be set to look through a secondary XML file
             (usually one containing metadata). It requires that the passed metadata have an
             `'external_file'` key that specifies the path to the file. This parameter
@@ -342,71 +336,58 @@ class XML(Extractor):
         self.extract_soup_func = extract_soup_func
         super().__init__(*nargs, **kwargs)
 
-    def _select(self, soup, metadata=None):
+    def _select(self, tag: TagsInput, soup: bs4.PageElement, metadata=None):
         '''
         Return the BeautifulSoup element that matches the constraints of this
         extractor.
         '''
 
-        # If the tag was a path, walk through it before continuing
-        tag = self.tag
-        if not tag:
-            return soup
-        if isinstance(self.tag, list):
-            if len(tag) == 0:
-                return soup
-            for i in range(0, len(self.tag)-1):
-                if self.tag[i] == '.':
-                    pass
-                else:
-                    soup = self.tag[i].find_next_in_soup(soup)
-                if not soup:
-                    return None
-            tag = self.tag[-1]
-
-        # Select by sibling tag
-        soup = self._select_by_sibling_tag(soup, metadata)
-
-        if not soup:
-            return None
-
-        if self.multiple:
-            return tag.find_in_soup(soup)
+        if isinstance(tag, list):
+            tags = tag
         else:
-            return tag.find_next_in_soup(soup)
+            tags = [tag]
+
+        if len(tags) > 1:
+            tag = self._resolve_tag(tags[0], metadata)
+            if tag:
+                for element in tag.find_in_soup(soup):
+                    for result in self._select(tags[1:], element, metadata):
+                        yield result
+            else:
+                for result in self._select(tags[1:], soup, metadata):
+                    yield result
+        elif len(tags) == 1:
+            tag = self._resolve_tag(tags[0], metadata)
+            if tag:
+                for result in tag.find_in_soup(soup):
+                    yield result
+            else:
+                yield soup
+
     
     def _resolve_tag(self, tag: TagInput, metadata: Dict) -> Optional[XMLTag]:
         return tag(metadata) if callable(tag) else tag
 
-    def _select_by_sibling_tag(self, soup: bs4.element.Tag, metadata: Dict) -> Optional[bs4.element.Tag]:
-        '''
-        Uses `self.sibling_tag` to select a node to search from.
-
-        Parameters:
-            soup: the tag from which to search for the sibling tag.
-            metadata: metadata for the document
-
-        Returns:
-            If a sibling tag is specified, the parent of the matching tag. Returns `None`
-            if the tag is specified but no match is found. If the tag is not specified,
-            returns the current node.
-        '''
-        sibling_tag = self._resolve_tag(self.sibling_tag, metadata)
-        if sibling_tag:
-            return sibling_tag.find_next_in_soup(soup).parent
-        
-        return soup
 
     def _apply(self, soup_top, soup_entry, *nargs, **kwargs):
-        soup = self._select(
+        results_generator = self._select(
+            self.tag,
             soup_top if self.toplevel else soup_entry,
             metadata=kwargs.get('metadata')
         )
-        if self.transform_soup_func:
-            if type(soup) == bs4.element.ResultSet:
-                soup = [self.transform_soup_func(bowl) for bowl in soup]
-            else:
-                soup = self.transform_soup_func(soup)
+        
+        if self.multiple:
+            results = list(results_generator)
+            if self.transform_soup_func:
+                results = map(self.transform_soup_func, results)
+            return list(map(self._extract, results))
+        else:
+            result = next(results_generator, None)
+            if self.transform_soup_func:
+                result = self.transform_soup_func(result)
+            return self._extract(result)
+
+    def _extract(self, soup: Optional[bs4.PageElement]):
         if not soup:
             return None
 
@@ -419,7 +400,7 @@ class XML(Extractor):
             if self.flatten:
                 return self._flatten(soup)
             else:
-                return self._string(soup)
+                return self._string(soup)    
 
     def _string(self, soup):
         '''
