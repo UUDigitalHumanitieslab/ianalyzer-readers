@@ -294,13 +294,6 @@ class XML(Extractor):
             specification. Value is either an `XMLTag` or a callable that takes a metadata dict
             and returns an XMLTag (or None). If `external_file=True`, then the metadata dict
             will include the values of all fields with `external_file=False`. 
-        secondary_tag: Adds a condition that the tag must have a sibling tag for which the
-            text content matches a metadata field or a string. The value is a dictionary,
-            with two keys: `'tag'` gives the name of the sibling tag. The other key can be
-            `'exact'`, which gives a string to match, or `'match'`, which gives the name of
-            a metadata field against which to match the content. If this field has
-            `external_file=True`, then `'match'` can also give the name of another field in
-            the reader, which has `external_file=False`.
         external_file: This property can be set to look through a secondary XML file
             (usually one containing metadata). It requires that the passed metadata have an
             `'external_file'` key that specifies the path to the file. This parameter
@@ -318,13 +311,16 @@ class XML(Extractor):
         **kwargs: additional options to pass on to `Extractor`.
     '''
 
+    TagInput = Union[XMLTag, Callable[[Dict], Optional[XMLTag]], None]
+    TagsInput = Union[TagInput, List[TagInput]]
+
     def __init__(self,
-                 tag: Union[XMLTag, List[XMLTag], None],
+                 tag: TagsInput,
                  attribute: Optional[str] = None,
                  flatten: bool = False,
                  toplevel: bool = False,
                  multiple: bool = False,
-                 sibling_tag: Union[XMLTag, Callable[[Dict], XMLTag], None] = None,
+                 sibling_tag: TagInput = None,
                  external_file: Dict = {
                      'xml_tag_toplevel': None,
                      'xml_tag_entry': None
@@ -378,6 +374,9 @@ class XML(Extractor):
             return tag.find_all_in_soup(soup)
         else:
             return tag.find_in_soup(soup)
+    
+    def _resolve_tag(self, tag: TagInput, metadata: Dict) -> Optional[XMLTag]:
+        return tag(metadata) if callable(tag) else tag
 
     def _select_by_sibling_tag(self, soup: bs4.element.Tag, metadata: Dict) -> Optional[bs4.element.Tag]:
         '''
@@ -392,11 +391,7 @@ class XML(Extractor):
             if the tag is specified but no match is found. If the tag is not specified,
             returns the current node.
         '''
-        if callable(self.sibling_tag):
-            sibling_tag = self.sibling_tag(metadata)
-        else:
-            sibling_tag = self.sibling_tag
-        
+        sibling_tag = self._resolve_tag(self.sibling_tag, metadata)
         if sibling_tag:
             return sibling_tag.find_in_soup(soup).parent
         
