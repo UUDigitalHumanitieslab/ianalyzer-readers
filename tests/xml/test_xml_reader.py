@@ -3,7 +3,7 @@ import os
 from ianalyzer_readers.readers.xml import XMLReader
 from ianalyzer_readers.readers.core import Field
 from ianalyzer_readers.extract import XML
-from ianalyzer_readers.utils import XMLTag
+from ianalyzer_readers.utils import XMLTag, CurrentTag
 
 class HamletXMLReader(XMLReader):
     """
@@ -31,7 +31,7 @@ class HamletXMLReader(XMLReader):
     )
     character = Field(
         'character',
-        XML(None, attribute='character')
+        XML(CurrentTag(), attribute='character')
     )
     lines = Field(
         'lines',

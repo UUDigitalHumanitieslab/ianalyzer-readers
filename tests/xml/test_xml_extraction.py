@@ -5,7 +5,7 @@ from ianalyzer_readers.readers.xml import XMLReader
 from ianalyzer_readers.extract import XML
 from ianalyzer_readers.readers.core import Field
 from ianalyzer_readers.utils import (
-    XMLTag, ParentTag, FindParentTag, SiblingTag, TransformTag
+    XMLTag, ParentTag, FindParentTag, SiblingTag, CurrentTag, TransformTag
 ) 
 
 
@@ -63,7 +63,7 @@ def test_xml_transform(tmpdir):
 
 
 def test_xml_no_tag(tmpdir):
-    extractor = XML(None)
+    extractor = XML(CurrentTag())
     reader = make_test_reader(extractor, XMLTag('play'), XMLTag('character'), basic_doc, tmpdir)
     assert_extractor_output(reader, 'HAMLET')
 
@@ -80,7 +80,7 @@ doc_with_attribute = '''
 
 
 def test_xml_attribute(tmpdir):
-    extractor = XML(None, attribute='character')
+    extractor = XML(CurrentTag(), attribute='character')
     reader = make_test_reader(extractor, XMLTag('play'), XMLTag('lines'), doc_with_attribute, tmpdir)
     assert_extractor_output(reader, 'HAMLET')
 
@@ -100,7 +100,7 @@ doc_multiline = '''
 '''
 
 def test_xml_flatten(tmpdir):
-    extractor = XML(None, flatten=True)
+    extractor = XML(CurrentTag(), flatten=True)
     reader = make_test_reader(extractor, XMLTag('play'), XMLTag('lines'), doc_multiline, tmpdir)
     expected = 'My hour is almost come, When I to sulph\'rous and tormenting flames Must render up myself.'
     assert_extractor_output(reader, expected)
@@ -195,7 +195,7 @@ def test_xml_transform_tag(tmpdir):
 
 def test_xml_extract_soup_func(tmpdir):
     get_scene_number = lambda soup: soup.find_parent('scene')['n']
-    extractor = XML(None, extract_soup_func=get_scene_number)
+    extractor = XML(CurrentTag(), extract_soup_func=get_scene_number)
     reader = make_test_reader(extractor, XMLTag('play'), XMLTag('lines'), doc_nested, tmpdir)
     assert_extractor_output(reader, 'V')
 

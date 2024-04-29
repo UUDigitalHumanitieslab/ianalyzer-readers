@@ -11,25 +11,14 @@ from typing import Union, Dict, Callable, Any, Iterable, Tuple
 
 from .. import extract
 from .core import Reader, Source, Document
-from ..utils import XMLTag
-
-logger = logging.getLogger()
+from ..utils import XMLTag, CurrentTag
 
 TagSpecification = Union[
-    None,
     XMLTag,
-    Callable[[Any, Dict], Union[None, XMLTag]]
+    Callable[[Any, Dict], XMLTag]
 ]
-'''
-A specification for an XML tag used in the `XMLReader`.
 
-These can be:
-
-- None
-- An `XMLTag` object
-- A callable that takes an `XMLReader` instance and a dictionary with metadata for the
-    file, and returns one of the above.
-'''
+logger = logging.getLogger()
 
 class XMLReader(Reader):
     '''
@@ -44,19 +33,19 @@ class XMLReader(Reader):
     In addition to generic extractor classes, this reader supports the `XML` extractor.
     '''
 
-    tag_toplevel: TagSpecification = None
+    tag_toplevel: TagSpecification = CurrentTag()
     '''
     The top-level tag in the source documents.
 
     Can be:
 
-    - None
-    - A string with the name of the tag
+    - An XMLTag
+    - A 
     - A dictionary that gives the named arguments to soup.find_all()
     - A bound method that takes the metadata of the document as input and outputs one of the above.
     '''
 
-    tag_entry: TagSpecification = None
+    tag_entry: TagSpecification = CurrentTag()
     '''
     The tag that corresponds to a single document entry.
 
@@ -102,10 +91,10 @@ class XMLReader(Reader):
             field.name for field in self.fields if field.required]
         # Extract fields from the soup
 
-        tag = self._get_tag_requirements(self.tag_entry, metadata)
+        tag = self._resolve_tag(self.tag_entry, metadata)
         bowl = self._bowl_from_soup(soup, metadata=metadata)
         if bowl:
-            spoonfuls = tag.find_in_soup(bowl) if tag else [bowl]
+            spoonfuls = tag.find_in_soup(bowl)
             for i, spoon in enumerate(spoonfuls):
                 regular_field_dict = {field.name: field.extractor.apply(
                     # The extractor is put to work by simply throwing at it
@@ -133,7 +122,7 @@ class XMLReader(Reader):
             logger.warning(
                 'Top-level tag not found in `{}`'.format(source))
 
-    def _get_tag_requirements(self, specification: TagSpecification, metadata: Dict) -> Union[None, XMLTag]:
+    def _resolve_tag(self, specification: TagSpecification, metadata: Dict) -> XMLTag:
         '''
         Get the requirements for a tag given the specification and metadata.
 
@@ -218,12 +207,9 @@ class XMLReader(Reader):
         If no such tag is present, it contains the entire soup.
         '''
         if toplevel_tag == None:
-            toplevel_tag = self._get_tag_requirements(self.tag_toplevel, metadata)
+            toplevel_tag = self._resolve_tag(self.tag_toplevel, metadata)
         else:
-            toplevel_tag = self._get_tag_requirements(toplevel_tag, metadata)
+            toplevel_tag = self._resolve_tag(toplevel_tag, metadata)
 
-        if toplevel_tag:
-            return toplevel_tag.find_next_in_soup(soup)
-        else:
-            return soup
+        return toplevel_tag.find_next_in_soup(soup)
 

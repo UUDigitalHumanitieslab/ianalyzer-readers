@@ -1,4 +1,4 @@
-from typing import Iterable, Optional, Callable, Union
+from typing import Iterable, Optional, Callable, Union, Dict, List
 import bs4
 
 class XMLTag:
@@ -92,3 +92,6 @@ class TransformTag(XMLTag):
             return result
         return [result]
     
+
+TagSpecification = Union[XMLTag, Callable[[Dict], XMLTag]]
+TagsInput = Union[TagSpecification, List[TagSpecification]]

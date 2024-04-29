@@ -3,7 +3,7 @@ import os
 from ianalyzer_readers.readers.html import HTMLReader
 from ianalyzer_readers.readers.core import Field
 from ianalyzer_readers.extract import XML
-from ianalyzer_readers.utils import XMLTag
+from ianalyzer_readers.utils import XMLTag, CurrentTag
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -34,7 +34,7 @@ class HamletHTMLReader(HTMLReader):
     )
     lines = Field(
         'lines',
-        XML(None, flatten=True),
+        XML(CurrentTag(), flatten=True),
     )
 
     fields = [title, character, lines]
