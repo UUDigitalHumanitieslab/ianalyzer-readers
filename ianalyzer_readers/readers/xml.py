@@ -73,7 +73,7 @@ class XMLReader(Reader):
         # Make sure that extractors are sensible
         self._reject_extractors(extract.CSV)
 
-        soup, metadata = self._soup_and_metadata_from_source(source)
+        filename, soup, metadata = self._filename_soup_and_metadata_from_source(source)
 
         # extract information from external xml files first, if applicable
         if metadata and 'external_file' in metadata:
@@ -120,7 +120,7 @@ class XMLReader(Reader):
                     yield full_dict
         else:
             logger.warning(
-                'Top-level tag not found in `{}`'.format(source))
+                'Top-level tag not found in `{}`'.format(filename))
 
     def _resolve_tag(self, specification: TagSpecification, metadata: Dict) -> XMLTag:
         '''
@@ -161,24 +161,23 @@ class XMLReader(Reader):
                 )
             else:
                 logger.warning(
-                    'Top-level tag not found in `{}`'.format(bowl))
+                    'Top-level tag not found in `{}`'.format(metadata['external_file']))
         return external_dict
 
-    def _soup_and_metadata_from_source(self, source: Source) -> Tuple[bs4.BeautifulSoup, Dict]:
-        metadata = {}
+    def _filename_soup_and_metadata_from_source(self, source: Source) -> Tuple[str, bs4.BeautifulSoup, Dict]:
         if isinstance(source, str):
-            # no metadata
             filename = source
             soup = self._soup_from_xml(filename)
+            metadata = {}
         elif isinstance(source, bytes):
             soup = self._soup_from_data(source)
-            filename = soup.find('RecordID')
+            filename = None
+            metadata = {}
         else:
             filename = source[0]
             soup = self._soup_from_xml(filename)
             metadata = source[1] or None
-            soup = self._soup_from_xml(filename)
-        return soup, metadata
+        return filename, soup, metadata
 
     def _soup_from_xml(self, filename):
         '''
