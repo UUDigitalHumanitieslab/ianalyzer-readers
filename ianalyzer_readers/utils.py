@@ -13,13 +13,13 @@ class XMLTag:
         self.args = args
         self.kwargs = kwargs
     
-    def find_in_soup(self, soup: bs4.element.Tag):
+    def find_in_soup(self, soup: bs4.element.PageElement):
         '''
         Search for this tag using `soup.find()`
         '''
         return soup.find(*self.args, **self.kwargs)
     
-    def find_all_in_soup(self, soup: bs4.element.Tag):
+    def find_all_in_soup(self, soup: bs4.element.PageElement):
         '''
         Search for this tag using `soup.find_all()`
         '''
@@ -57,3 +57,16 @@ class FindParentTag(XMLTag):
     def find_all_in_soup(self, soup: bs4.Tag):
         return soup.find_parents(*self.args, **self.kwargs)
 
+
+class SiblingTag(XMLTag):
+    '''
+    An XMLTag that will look in an element's siblings.
+    '''
+
+    def find_in_soup(self, soup: bs4.element.PageElement):
+        return soup.find_next_sibling(*self.args, **self.kwargs) or \
+            soup.find_previous_sibling(*self.args, *self.kwargs)
+
+    def find_all_in_soup(self, soup: bs4.PageElement):
+        return list(soup.find_next_siblings(*self.args, **self.kwargs)) + \
+            list(soup.find_previous_siblings(*self.args, **self.kwargs))

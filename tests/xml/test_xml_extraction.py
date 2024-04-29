@@ -4,7 +4,7 @@ import re
 from ianalyzer_readers.readers.xml import XMLReader
 from ianalyzer_readers.extract import XML
 from ianalyzer_readers.readers.core import Field
-from ianalyzer_readers.utils import XMLTag, ParentTag, FindParentTag
+from ianalyzer_readers.utils import XMLTag, ParentTag, FindParentTag, SiblingTag
 
 
 def make_test_reader(extractor, toplevel_tag, entry_tag, doc, tmpdir):
@@ -233,12 +233,17 @@ doc_longer = '''
 
 
 def test_xml_sibling_tag(tmpdir):
-    extractor = XML(
-        XMLTag('l'),
-        sibling_tag=XMLTag('character', string='GHOST')
-    )
+    extractor = XML(SiblingTag('character'))
+    reader = make_test_reader(extractor, XMLTag('play'), XMLTag('l'), doc_longer, tmpdir)
+    assert_extractor_output(reader, 'HAMLET')
+
+    extractor = XML([
+        XMLTag('character', string='GHOST'),
+        SiblingTag('l')
+    ])
     reader = make_test_reader(extractor, XMLTag('play'), XMLTag('scene'), doc_longer, tmpdir)
     assert_extractor_output(reader, 'Mark me.')
+
 
 doc_with_title = '''
 <?xml version="1.0" encoding="UTF-8"?>
@@ -250,6 +255,7 @@ doc_with_title = '''
     </lines>
 </play>
 '''
+
 
 external_doc = '''
 <?xml version="1.0" encoding="UTF-8"?>
