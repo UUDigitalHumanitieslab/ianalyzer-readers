@@ -4,20 +4,21 @@ This module defines the XML Reader.
 Extraction is based on BeautifulSoup.
 '''
 
-from .. import extract
-from .core import Reader, Source, Document
 import itertools
 import bs4
 import logging
 from typing import Union, Dict, Callable, Any, Iterable
 
+from .. import extract
+from .core import Reader, Source, Document
+from .. import utils
+
 logger = logging.getLogger()
 
 TagSpecification = Union[
     None,
-    str,
-    Dict[str, Any],
-    Callable[[Any, Dict], Union[None, str, Dict[str, Any]]]
+    utils.XMLTag,
+    Callable[[Any, Dict], Union[None, utils.XMLTag]]
 ]
 '''
 A specification for an XML tag used in the `XMLReader`.
@@ -25,11 +26,9 @@ A specification for an XML tag used in the `XMLReader`.
 These can be:
 
 - None
-- a string with the name of the tag
-- a dictionary with the named arguments that should be passed to the `find()` / `find_all()`
-    method of a BeautifulSoup node.
-- A callable that takes an `XMLReader` instance and a dictionary with file metadata, and
-    returns any of the above.
+- An `XMLTag` object
+- A callable that takes an `XMLReader` instance and a dictionary with metadata for the
+    file, and returns one of the above.
 '''
 
 class XMLReader(Reader):

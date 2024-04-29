@@ -3,6 +3,7 @@ import os
 from ianalyzer_readers.readers.xml import XMLReader
 from ianalyzer_readers.readers.core import Field
 from ianalyzer_readers.extract import XML
+from ianalyzer_readers.utils import XMLTag
 
 class HamletXMLReader(XMLReader):
     """
@@ -11,8 +12,8 @@ class HamletXMLReader(XMLReader):
 
     data_directory = os.path.join(os.path.dirname(__file__), 'data')
 
-    tag_toplevel = 'document'
-    tag_entry = 'lines'
+    tag_toplevel = XMLTag('document')
+    tag_entry = XMLTag('lines')
 
     def sources(self, **kwargs):
         for filename in os.listdir(self.data_directory):
