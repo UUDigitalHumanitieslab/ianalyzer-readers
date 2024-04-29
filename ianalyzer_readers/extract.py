@@ -359,7 +359,7 @@ class XML(Extractor):
                 if self.tag[i] == '.':
                     pass
                 else:
-                    soup = self.tag[i].find_in_soup(soup)
+                    soup = self.tag[i].find_next_in_soup(soup)
                 if not soup:
                     return None
             tag = self.tag[-1]
@@ -371,9 +371,9 @@ class XML(Extractor):
             return None
 
         if self.multiple:
-            return tag.find_all_in_soup(soup)
-        else:
             return tag.find_in_soup(soup)
+        else:
+            return tag.find_next_in_soup(soup)
     
     def _resolve_tag(self, tag: TagInput, metadata: Dict) -> Optional[XMLTag]:
         return tag(metadata) if callable(tag) else tag
@@ -393,7 +393,7 @@ class XML(Extractor):
         '''
         sibling_tag = self._resolve_tag(self.sibling_tag, metadata)
         if sibling_tag:
-            return sibling_tag.find_in_soup(soup).parent
+            return sibling_tag.find_next_in_soup(soup).parent
         
         return soup
 

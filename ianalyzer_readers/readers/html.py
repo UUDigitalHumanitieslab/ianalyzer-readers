@@ -54,11 +54,11 @@ class HTMLReader(XMLReader):
         tag0 = self.tag_toplevel
         tag = self.tag_entry
 
-        bowl = tag0.find_in_soup(soup) if tag0 else soup
+        bowl = tag0.find_next_in_soup(soup) if tag0 else soup
 
         # if there is a entry level tag; with html this is not always the case
         if bowl and tag:
-            for i, spoon in enumerate(tag.find_all_in_soup(soup)):
+            for i, spoon in enumerate(tag.find_in_soup(soup)):
                 # yield
                 yield {
                     field.name: field.extractor.apply(

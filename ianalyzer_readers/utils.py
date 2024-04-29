@@ -1,3 +1,4 @@
+from typing import Iterable, Optional
 import bs4
 
 class XMLTag:
@@ -13,17 +14,12 @@ class XMLTag:
         self.args = args
         self.kwargs = kwargs
     
-    def find_in_soup(self, soup: bs4.element.PageElement):
-        '''
-        Search for this tag using `soup.find()`
-        '''
-        return soup.find(*self.args, **self.kwargs)
-    
-    def find_all_in_soup(self, soup: bs4.element.PageElement):
-        '''
-        Search for this tag using `soup.find_all()`
-        '''
+    def find_next_in_soup(self, soup: bs4.element.PageElement) -> Optional[bs4.PageElement]:
+        return next((tag for tag in self.find_in_soup(soup)), None)
+
+    def find_in_soup(self, soup: bs4.element.PageElement) -> Iterable[bs4.PageElement]:
         return soup.find_all(*self.args, **self.kwargs)
+
 
 class ParentTag(XMLTag):
     '''
@@ -33,17 +29,13 @@ class ParentTag(XMLTag):
     def __init__(self, level=1):
         self.level = level
 
-    def find_in_soup(self, soup: bs4.element.PageElement):
+    def find_in_soup(self, soup: bs4.PageElement):
         count = 0
         while count < self.level:
             soup = soup.parent if soup else None
             count += 1
 
-        return soup
-    
-    def find_all_in_soup(self, soup: bs4.element.PageElement):
-        parent = self.find_in_soup(soup)
-        return [parent] if parent else []
+        yield soup
 
 
 class FindParentTag(XMLTag):
@@ -51,22 +43,18 @@ class FindParentTag(XMLTag):
     An XMLTag that will find a parent tag based on query arguments.
     '''
 
-    def find_in_soup(self, soup: bs4.element.PageElement):
-        return soup.find_parent(*self.args, **self.kwargs)
-    
-    def find_all_in_soup(self, soup: bs4.Tag):
+    def find_in_soup(self, soup: bs4.PageElement):
         return soup.find_parents(*self.args, **self.kwargs)
-
+    
 
 class SiblingTag(XMLTag):
     '''
     An XMLTag that will look in an element's siblings.
     '''
 
-    def find_in_soup(self, soup: bs4.element.PageElement):
-        return soup.find_next_sibling(*self.args, **self.kwargs) or \
-            soup.find_previous_sibling(*self.args, *self.kwargs)
-
-    def find_all_in_soup(self, soup: bs4.PageElement):
-        return list(soup.find_next_siblings(*self.args, **self.kwargs)) + \
-            list(soup.find_previous_siblings(*self.args, **self.kwargs))
+    def find_in_soup(self, soup: bs4.PageElement):
+        for tag in soup.find_next_siblings(*self.args, **self.kwargs):
+            yield tag
+        
+        for tag in soup.find_previous_siblings(*self.args, **self.kwargs):
+            yield tag

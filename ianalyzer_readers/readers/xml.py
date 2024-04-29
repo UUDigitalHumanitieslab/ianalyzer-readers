@@ -105,7 +105,7 @@ class XMLReader(Reader):
         tag = self._get_tag_requirements(self.tag_entry, metadata)
         bowl = self._bowl_from_soup(soup, metadata=metadata)
         if bowl:
-            spoonfuls = tag.find_all_in_soup(bowl) if tag else [bowl]
+            spoonfuls = tag.find_in_soup(bowl) if tag else [bowl]
             for i, spoon in enumerate(spoonfuls):
                 regular_field_dict = {field.name: field.extractor.apply(
                     # The extractor is put to work by simply throwing at it
@@ -223,7 +223,7 @@ class XMLReader(Reader):
             toplevel_tag = self._get_tag_requirements(toplevel_tag, metadata)
 
         if toplevel_tag:
-            return toplevel_tag.find_in_soup(soup)
+            return toplevel_tag.find_next_in_soup(soup)
         else:
             return soup
 
