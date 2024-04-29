@@ -268,7 +268,7 @@ def test_xml_external_file(tmpdir):
                 extractor=XML(
                     'author',
                     secondary_tag={'tag': 'title', 'match': 'title'},
-                    external_file={'xml_tag_toplevel': 'bibliography', 'xml_tag_entry': None}
+                    external_file={'xml_tag_toplevel': XMLTag('bibliography'), 'xml_tag_entry': None}
                 )
             ),
             Field(
