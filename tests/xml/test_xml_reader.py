@@ -24,7 +24,10 @@ class HamletXMLReader(XMLReader):
 
     title = Field(
         'title',
-        XML('title', toplevel=True, recursive=True)
+        XML(
+            XMLTag('title'),
+            toplevel=True
+        )
     )
     character = Field(
         'character',
@@ -32,7 +35,11 @@ class HamletXMLReader(XMLReader):
     )
     lines = Field(
         'lines',
-        XML('l', multiple=True, transform='\n'.join),
+        XML(
+            XMLTag('l'),
+            multiple=True,
+            transform='\n'.join
+        ),
     )
 
     fields = [title, character, lines]

@@ -3,6 +3,7 @@ import os
 from ianalyzer_readers.readers.html import HTMLReader
 from ianalyzer_readers.readers.core import Field
 from ianalyzer_readers.extract import XML
+from ianalyzer_readers.utils import XMLTag
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -13,8 +14,8 @@ class HamletHTMLReader(HTMLReader):
 
     data_directory = os.path.join(here, 'html_example')
 
-    tag_toplevel = 'body'
-    tag_entry = 'p'
+    tag_toplevel = XMLTag('body')
+    tag_entry = XMLTag('p')
 
     def sources(self, **kwargs):
         for filename in os.listdir(self.data_directory):
@@ -25,11 +26,11 @@ class HamletHTMLReader(HTMLReader):
 
     title = Field(
         'title',
-        XML('h1', toplevel=True)
+        XML(XMLTag('h1'), toplevel=True)
     )
     character = Field(
         'character',
-        XML('b')
+        XML(XMLTag('b'))
     )
     lines = Field(
         'lines',

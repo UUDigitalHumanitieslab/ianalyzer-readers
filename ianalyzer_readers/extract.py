@@ -14,6 +14,8 @@ import traceback
 from typing import Any, Dict, Callable, Union, List, Pattern, Optional
 logger = logging.getLogger()
 
+from .utils import XMLTag
+
 
 class Extractor(object):
     '''
@@ -275,12 +277,9 @@ class XML(Extractor):
 
     Parameters:
         tag: Tag to select. Can be:
-            - a string
-            - a compiled regular expression (the output of `re.compile`).
-            - a list of strings or regular expression pattterns. In that case, it is read
-                as a path to select successive children.
-            - `None`, if the information is in an attribute of the current head of the
-                tree.
+            - an XMLTag object
+            - a list of XMLTag objects, indicating a chain of descendants.
+            - `None`, to select the current head of the tree.
         parent_level: If set, the extractor will ascend the tree before looking for the
             indicated `tag`. Useful when you need to select information from a tag's
             sibling or parent.
@@ -321,12 +320,11 @@ class XML(Extractor):
     '''
 
     def __init__(self,
-                 tag: Union[str, Pattern, List[Union[str, Pattern]], None] = [],
+                 tag: Union[XMLTag, List[XMLTag], None],
                  parent_level: Optional[int] = None,
                  attribute: Optional[str] = None,
                  flatten: bool = False,
                  toplevel: bool = False,
-                 recursive: bool = False,
                  multiple: bool = False,
                  secondary_tag: Dict = {
                      'tag': None,
@@ -348,7 +346,6 @@ class XML(Extractor):
         self.attribute = attribute
         self.flatten = flatten
         self.toplevel = toplevel
-        self.recursive = recursive
         self.multiple = multiple
         self.secondary_tag = secondary_tag if secondary_tag['tag'] != None else None
         self.external_file = external_file if external_file['xml_tag_toplevel'] else None
@@ -361,6 +358,13 @@ class XML(Extractor):
         Return the BeautifulSoup element that matches the constraints of this
         extractor.
         '''
+
+        if self.parent_level:
+            count = 0
+            while count < self.parent_level:
+                soup = soup.parent
+                count += 1
+
         # If the tag was a path, walk through it before continuing
         tag = self.tag
         if not tag:
@@ -374,7 +378,7 @@ class XML(Extractor):
                 elif self.tag[i] == '.':
                     pass
                 else:
-                    soup = soup.find(self.tag[i], recursive=self.recursive)
+                    soup = self.tag[i].find_in_soup(soup)
                 if not soup:
                     return None
             tag = self.tag[-1]
@@ -389,28 +393,18 @@ class XML(Extractor):
                 match_string = self.secondary_tag['exact']
             sibling = soup.find(self.secondary_tag['tag'], string=match_string)
             if sibling:
-                return sibling.parent.find(tag)
+                return tag.find_in_soup(sibling.parent)
 
-        # Find and return (all) relevant BeautifulSoup element(s)
         if self.multiple:
-            return soup.find_all(tag, recursive=self.recursive)
-        elif self.parent_level:
-            count = 0
-            while count < self.parent_level:
-                soup = soup.parent
-                count += 1
-            return soup.find(tag, recursive=self.recursive)
+            return tag.find_all_in_soup(soup)
         else:
-            return soup.find(tag, recursive=self.recursive)
+            return tag.find_in_soup(soup)
 
     def _apply(self, soup_top, soup_entry, *nargs, **kwargs):
-        if 'metadata' in kwargs:
-            # pass along the metadata to the _select method
-            soup = self._select(
-                soup_top if self.toplevel else soup_entry, metadata=kwargs['metadata'])
-        # Select appropriate BeautifulSoup element
-        else:
-            soup = self._select(soup_top if self.toplevel else soup_entry)
+        soup = self._select(
+            soup_top if self.toplevel else soup_entry,
+            metadata=kwargs.get('metadata')
+        )
         if self.transform_soup_func:
             if type(soup) == bs4.element.ResultSet:
                 soup = [self.transform_soup_func(bowl) for bowl in soup]
