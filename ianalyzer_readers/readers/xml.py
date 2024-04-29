@@ -7,7 +7,7 @@ Extraction is based on BeautifulSoup.
 import itertools
 import bs4
 import logging
-from typing import Union, Dict, Callable, Any, Iterable
+from typing import Union, Dict, Callable, Any, Iterable, Tuple
 
 from .. import extract
 from .core import Reader, Source, Document
@@ -85,20 +85,9 @@ class XMLReader(Reader):
         # Make sure that extractors are sensible
         self._reject_extractors(extract.CSV)
 
+        soup, metadata = self._soup_and_metadata_from_source(source)
+
         # extract information from external xml files first, if applicable
-        metadata = {}
-        if isinstance(source, str):
-            # no metadata
-            filename = source
-            soup = self._soup_from_xml(filename)
-        elif isinstance(source, bytes):
-            soup = self._soup_from_data(source)
-            filename = soup.find('RecordID')
-        else:
-            filename = source[0]
-            soup = self._soup_from_xml(filename)
-            metadata = source[1] or None
-            soup = self._soup_from_xml(filename)
         if metadata and 'external_file' in metadata:
             external_fields = [field for field in self.fields if
                                isinstance(field.extractor, extract.XML) and
@@ -204,6 +193,22 @@ class XMLReader(Reader):
                 logger.warning(
                     'Top-level tag not found in `{}`'.format(bowl))
         return external_dict
+
+    def _soup_and_metadata_from_source(self, source: Source) -> Tuple[bs4.BeautifulSoup, Dict]:
+        metadata = {}
+        if isinstance(source, str):
+            # no metadata
+            filename = source
+            soup = self._soup_from_xml(filename)
+        elif isinstance(source, bytes):
+            soup = self._soup_from_data(source)
+            filename = soup.find('RecordID')
+        else:
+            filename = source[0]
+            soup = self._soup_from_xml(filename)
+            metadata = source[1] or None
+            soup = self._soup_from_xml(filename)
+        return soup, metadata
 
     def _soup_from_xml(self, filename):
         '''
