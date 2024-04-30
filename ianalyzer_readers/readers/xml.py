@@ -19,13 +19,22 @@ class XMLReader(Reader):
     '''
     A base class for Readers that extract data from XML files.
 
-    The built-in functionality of the XML reader is quite versatile, and can be further expanded by
-    adding custom functions to XML extractors that interact directly with BeautifulSoup nodes.
+    The built-in functionality of the XML reader is quite versatile, and can be further
+    expanded by adding custom Tag classes or extraction functions that interact directly with
+    BeautifulSoup nodes.
 
-    The Reader is suitable for datasets where each file should be extracted as a single document, or
-    ones where each file contains multiple documents.
+    The Reader is suitable for datasets where each file should be extracted as a single
+    document, or ones where each file contains multiple documents.
 
     In addition to generic extractor classes, this reader supports the `XML` extractor.
+
+    Attributes:
+        tag_toplevel: the top-level tag to search from in source documents.
+        tag_entry: the tag that corresponds to a single document entry in source
+            documents.
+        external_file_tag_toplevel: the top-level tag to search from in external
+            documents (if that functionality is used)
+
     '''
 
     tag_toplevel: TagSpecification = CurrentTag()
@@ -52,7 +61,7 @@ class XMLReader(Reader):
 
     external_file_tag_toplevel: TagSpecification = CurrentTag()
     '''
-    The toplevel tag in external files (if you are using that functionality)
+    The toplevel tag in external files (if you are using that functionality).
 
     Can be:
 

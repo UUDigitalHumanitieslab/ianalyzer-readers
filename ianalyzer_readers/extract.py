@@ -261,8 +261,8 @@ class XML(Extractor):
     - Choose where to start searching. The default searching point is the entry tag
         for the document, but you can also start from the top of the document by setting
         `toplevel`.
-    - Describe the tag you need as an XMLTag object. You can also use a chain of queries by
-        providing a list.
+    - Describe the tag(s) you're looking for as a Tag object. You can also provide multiple
+        tags to chain queries. 
     - If you need to return _all_ matching tags, rather than the first match, set
         `multiple=True`.
     - Choose how to extract a value: set `attribute`, `flatten`, or `extract_soup_func`
@@ -271,29 +271,37 @@ class XML(Extractor):
         transform it, add a function for `transform`.
 
     Parameters:
-        tag: Tag to select. Can be:
-            - an XMLTag object
-            - a list of XMLTag objects, indicating a chain of descendants.
-            - `None`, to select the current head of the tree.
-        attribute: By default, the extractor will extract the text content of the tag.
-            Set this property to extract the value of an _attribute_ instead.
-        flatten: When extracting the text content of a tag, `flatten` determines whether
+        tags:
+            Tags to select. Each of these can be a `Tag` object, or a callable that
+            takes the document metadata as input and returns a `Tag`.
+            
+            Tags represent a query to select tags from current tag (e.g. the entry tag of
+            the document). If you provide multiple, they are chained: each Tag query is
+            applied to the results from the previous one.
+        attribute:
+            By default, the extractor will extract the text content of the tag. Set this
+            property to extract the value of an _attribute_ instead.
+        flatten:
+            When extracting the text content of a tag, `flatten` determines whether
             the contents of non-text children are flattened. If `False`, only the direct
-            text content of the tag is extracted. This parameter does nothing if
-            `attribute=True` is set.
-        toplevel: If `True`, the extractor will search from the toplevel tag of the XML
+            text content of the tag is extracted.
+            
+            This parameter does nothing if `attribute=True` is set.
+        toplevel:
+            If `True`, the extractor will search from the toplevel tag of the XML
             document, rather than the entry tag for the document.
-        multiple: If `False`, the extractor will extract the first matching element. If 
+        multiple:
+            If `False`, the extractor will extract the first matching element. If 
             `True`, it will extract a list of all matching elements.
-        external_file: This property can be set to look through a secondary XML file
-            (usually one containing metadata). It requires that the passed metadata have an
-            `'external_file'` key that specifies the path to the file. This parameter
-            specifies the toplevel tag and entry level tag for that file; if set, the
-            extractor will extract this field from the external file instead of the current
-            source file.
+        external_file:
+            If `True`, the extractor will look through a secondary XML file (usually one
+            containing metadata). It requires that the passed metadata have an
+            `'external_file'` key that specifies the path to the file.
+
+            Note: this option is not supported when this extractor is nested in another
+            extractor (like `Combined`).
         extract_soup_func: A function to extract a value directly from the soup element,
-            instead of using the content string or an attribute. Keep in mind
-            that the soup passed could be `None`.
+            instead of using the content string or an attribute.
             `attribute` and `flatten` will do nothing if this property is set.
         **kwargs: additional options to pass on to `Extractor`.
     '''

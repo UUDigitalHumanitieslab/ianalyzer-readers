@@ -202,7 +202,7 @@ def test_xml_tag_chain_exhaustive(tmpdir):
 
 
 def test_xml_transform_tag(tmpdir):
-    find_location = lambda soup: soup.find_previous_sibling('location')
+    find_location = lambda soup: [soup.find_previous_sibling('location')]
     extractor = XML(TransformTag(find_location))
     reader = make_test_reader(extractor, Tag('play'), Tag('lines'), doc_nested, tmpdir)
     assert_extractor_output(reader, 'A more remote part of the Castle.')
