@@ -11,10 +11,10 @@ import html
 import re
 import logging
 import traceback
-from typing import Any, Dict, Callable, Union, List, Pattern, Optional
+from typing import Any, Dict, Callable, List, Optional
 logger = logging.getLogger()
 
-from .utils import XMLTag, TagSpecification, TagsInput
+from .utils import TagsInput, _resolve_tag
 
 
 class Extractor(object):
@@ -331,18 +331,14 @@ class XML(Extractor):
             tags = [tag]
 
         if len(tags) > 1:
-            tag = self._resolve_tag(tags[0], metadata)
+            tag = _resolve_tag(tags[0], metadata)
             for element in tag.find_in_soup(soup):
                 for result in self._select(tags[1:], element, metadata):
                     yield result
         elif len(tags) == 1:
-            tag = self._resolve_tag(tags[0], metadata)
+            tag = _resolve_tag(tags[0], metadata)
             for result in tag.find_in_soup(soup):
                 yield result
-
-    
-    def _resolve_tag(self, tag: TagSpecification, metadata: Dict) -> XMLTag:
-        return tag(metadata) if callable(tag) else tag
 
 
     def _apply(self, soup_top, soup_entry, *nargs, **kwargs):

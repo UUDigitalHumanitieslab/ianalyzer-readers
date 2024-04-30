@@ -95,3 +95,9 @@ class TransformTag(XMLTag):
 
 TagSpecification = Union[XMLTag, Callable[[Dict], XMLTag]]
 TagsInput = Union[TagSpecification, List[TagSpecification]]
+
+def _resolve_tag(tag: TagSpecification, metadata: Dict) -> XMLTag:
+    if callable(tag):
+        return tag(metadata)
+    else:
+        return tag

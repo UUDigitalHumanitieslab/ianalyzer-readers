@@ -6,16 +6,12 @@ Extraction is based on BeautifulSoup.
 
 import bs4
 import logging
-from typing import Union, Dict, Callable, Iterable, Tuple, List
+from typing import Dict, Iterable, Tuple, List
 
 from .. import extract
 from .core import Reader, Source, Document, Field
-from ..utils import XMLTag, CurrentTag
+from ..utils import XMLTag, CurrentTag, _resolve_tag, TagSpecification
 
-TagSpecification = Union[
-    XMLTag,
-    Callable[[Dict], XMLTag]
-]
 
 logger = logging.getLogger()
 
@@ -107,11 +103,11 @@ class XMLReader(Reader):
             field.name for field in self.fields if field.required]
 
         # iterate through entries
-        top_tag = self._resolve_tag(self.tag_toplevel, metadata)
+        top_tag = _resolve_tag(self.tag_toplevel, metadata)
         bowl = top_tag.find_next_in_soup(soup)
 
         if bowl:
-            entry_tag = self._resolve_tag(self.tag_entry, metadata)
+            entry_tag = _resolve_tag(self.tag_entry, metadata)
             spoonfuls = entry_tag.find_in_soup(bowl)
             for i, spoon in enumerate(spoonfuls):
                 # Extract fields from the soup
@@ -142,33 +138,13 @@ class XMLReader(Reader):
             logger.warning(
                 'Top-level tag not found in `{}`'.format(filename))
 
-    def _resolve_tag(self, specification: TagSpecification, metadata: Dict) -> XMLTag:
-        '''
-        Get the requirements for a tag given the specification and metadata.
-
-        The specification can be:
-        - An `XMLTag` object
-        - A callable that takes an `XMLReader` instance and a dictionary with metadata for the
-            file, and returns one of the above.
-
-        Returns:
-            either `None` or an `XMLTag` object
-            
-        If the specification is a callable, this method calls it.
-        '''
-
-        if callable(specification):
-            return specification(metadata)
-        else:
-            return specification
-
     def _external_source2dict(self, soup, external_fields: List[Field], metadata: Dict):
         '''
         given an external xml file with metadata,
         return a dictionary with tags which were found in that metadata
         wrt to the current source.
         '''
-        tag = self._resolve_tag(self.external_file_tag_toplevel, metadata)
+        tag = _resolve_tag(self.external_file_tag_toplevel, metadata)
         bowl = tag.find_next_in_soup(soup)
 
         if not bowl:
