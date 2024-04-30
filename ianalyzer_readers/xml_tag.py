@@ -146,6 +146,55 @@ class SiblingTag(Tag):
         for tag in soup.find_previous_siblings(*self.args, **self.kwargs):
             yield tag
 
+class PreviousSiblingTag(Tag):
+    '''
+    A Tag that will look in an element's previous siblings.
+
+    Parameters:
+        *args: positional arguments to pass on to `soup.find_previous_siblings()`
+        **kwargs: named arguments to pass on to `soup.find_previous_siblings()`
+    '''
+
+    def find_in_soup(self, soup: bs4.PageElement):
+        return soup.find_previous_siblings(*self.args, **self.kwargs)
+
+class NextSiblingTag(Tag):
+    '''
+    A Tag that will look in an element's next siblings.
+
+    Parameters:
+        *args: positional arguments to pass on to `soup.find_next_siblings()`
+        **kwargs: named arguments to pass on to `soup.find_next_siblings()`
+    '''
+
+    def find_in_soup(self, soup: bs4.PageElement):
+        return soup.find_next_siblings(*self.args, **self.kwargs)
+    
+class PreviousTag(Tag):
+    '''
+    A Tag that will look in an element's previous siblings.
+
+    Parameters:
+        *args: positional arguments to pass on to `soup.find_all_previous()`
+        **kwargs: named arguments to pass on to `soup.find_all_previous()`
+    '''
+
+    def find_in_soup(self, soup: bs4.PageElement):
+        return soup.find_all_previous(*self.args, **self.kwargs)
+    
+class NextTag(Tag):
+    '''
+    A Tag that will look in an element's previous siblings.
+
+    Parameters:
+        *args: positional arguments to pass on to `soup.find_all_next()`
+        **kwargs: named arguments to pass on to `soup.find_all_next()`
+    '''
+
+    def find_in_soup(self, soup: bs4.PageElement):
+        return soup.find_all_next(*self.args, **self.kwargs)
+
+
 class TransformTag(Tag):
     '''
     A Tag that will perform a transformation function.
