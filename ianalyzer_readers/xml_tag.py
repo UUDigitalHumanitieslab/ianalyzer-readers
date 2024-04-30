@@ -1,4 +1,4 @@
-from typing import Iterable, Optional, Callable, Union, Dict, List
+from typing import Iterable, Optional, Callable, Union, Dict
 import bs4
 
 class Tag:
@@ -91,12 +91,11 @@ class TransformTag(Tag):
         if self.returns_multiple:
             return result
         return [result]
-    
+
 
 TagSpecification = Union[Tag, Callable[[Dict], Tag]]
-TagsInput = Union[TagSpecification, List[TagSpecification]]
 
-def _resolve_tag(tag: TagSpecification, metadata: Dict) -> Tag:
+def resolve_tag_specification(tag: TagSpecification, metadata: Dict) -> Tag:
     if callable(tag):
         return tag(metadata)
     else:

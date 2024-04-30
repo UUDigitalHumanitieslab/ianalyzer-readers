@@ -11,10 +11,10 @@ import html
 import re
 import logging
 import traceback
-from typing import Any, Dict, Callable, List, Optional
+from typing import Any, Dict, Callable, List, Optional, Iterable
 logger = logging.getLogger()
 
-from .xml_tag import TagsInput, _resolve_tag
+from .xml_tag import TagSpecification, resolve_tag_specification
 
 
 class Extractor(object):
@@ -299,51 +299,45 @@ class XML(Extractor):
     '''
 
     def __init__(self,
-                 tag: TagsInput,
+                 *tags: TagSpecification,
                  attribute: Optional[str] = None,
                  flatten: bool = False,
                  toplevel: bool = False,
                  multiple: bool = False,
                  external_file: bool = False,
                  extract_soup_func: Optional[Callable] = None,
-                 *nargs,
                  **kwargs
                  ):
 
-        self.tag = tag
+        self.tags = tags
         self.attribute = attribute
         self.flatten = flatten
         self.toplevel = toplevel
         self.multiple = multiple
         self.external_file = external_file
         self.extract_soup_func = extract_soup_func
-        super().__init__(*nargs, **kwargs)
+        super().__init__(**kwargs)
 
-    def _select(self, tag: TagsInput, soup: bs4.PageElement, metadata=None):
+    def _select(self, tags: Iterable[TagSpecification], soup: bs4.PageElement, metadata=None):
         '''
         Return the BeautifulSoup element that matches the constraints of this
         extractor.
         '''
 
-        if isinstance(tag, list):
-            tags = tag
-        else:
-            tags = [tag]
-
         if len(tags) > 1:
-            tag = _resolve_tag(tags[0], metadata)
+            tag = resolve_tag_specification(tags[0], metadata)
             for element in tag.find_in_soup(soup):
                 for result in self._select(tags[1:], element, metadata):
                     yield result
         elif len(tags) == 1:
-            tag = _resolve_tag(tags[0], metadata)
+            tag = resolve_tag_specification(tags[0], metadata)
             for result in tag.find_in_soup(soup):
                 yield result
 
 
     def _apply(self, soup_top, soup_entry, *nargs, **kwargs):
         results_generator = self._select(
-            self.tag,
+            self.tags,
             soup_top if self.toplevel else soup_entry,
             metadata=kwargs.get('metadata')
         )

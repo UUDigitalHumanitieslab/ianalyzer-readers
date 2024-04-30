@@ -180,10 +180,25 @@ def test_xml_recursive(tmpdir):
     assert_extractor_output(reader, 'Whither wilt thou lead me? Speak, I\'ll go no further.')
 
 
-def test_xml_tag_list(tmpdir):
-    extractor = XML([Tag('lines'), Tag('l')])
+def test_xml_tag_chain(tmpdir):
+    extractor = XML(Tag('lines'), Tag('l'))
     reader = make_test_reader(extractor, Tag('play'), Tag('scene'), doc_nested, tmpdir)
     assert_extractor_output(reader, 'Whither wilt thou lead me? Speak, I\'ll go no further.')
+
+
+def test_xml_tag_chain_exhaustive(tmpdir):
+    '''
+    When a chain of tag is used, each match to the earlier tags in the chain should be
+    explored (if needed) when when extracting results
+    '''
+    extractor = XML(Tag('lines', character='GHOST'), Tag('l'))
+    reader = make_test_reader(extractor, Tag('play'), Tag('scene'), doc_nested, tmpdir)
+    assert_extractor_output(reader, 'Mark me.')
+
+    extractor = XML(Tag('lines'), Tag('l'), multiple=True)
+    reader = make_test_reader(extractor, Tag('play'), Tag('scene'), doc_nested, tmpdir)
+    assert_extractor_output(reader,
+        ['Whither wilt thou lead me? Speak, I\'ll go no further.', 'Mark me.'])
 
 
 def test_xml_transform_tag(tmpdir):
@@ -239,10 +254,10 @@ def test_xml_sibling_tag(tmpdir):
     reader = make_test_reader(extractor, Tag('play'), Tag('l'), doc_longer, tmpdir)
     assert_extractor_output(reader, 'HAMLET')
 
-    extractor = XML([
+    extractor = XML(
         Tag('character', string='GHOST'),
         SiblingTag('l')
-    ])
+    )
     reader = make_test_reader(extractor, Tag('play'), Tag('scene'), doc_longer, tmpdir)
     assert_extractor_output(reader, 'Mark me.')
 
@@ -294,10 +309,8 @@ def test_xml_external_file(tmpdir):
             Field(
                 name='author',
                 extractor=XML(
-                    [
-                        lambda metadata: Tag('title', string=metadata['title']),
-                        SiblingTag('author')
-                    ],
+                    lambda metadata: Tag('title', string=metadata['title']),
+                    SiblingTag('author'),
                     external_file=True
                 )
             ),
