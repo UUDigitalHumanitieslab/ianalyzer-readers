@@ -4,10 +4,9 @@ This module defines the XML Reader.
 Extraction is based on BeautifulSoup.
 '''
 
-import itertools
 import bs4
 import logging
-from typing import Union, Dict, Callable, Any, Iterable, Tuple, List
+from typing import Union, Dict, Callable, Iterable, Tuple, List
 
 from .. import extract
 from .core import Reader, Source, Document, Field
@@ -15,7 +14,7 @@ from ..utils import XMLTag, CurrentTag
 
 TagSpecification = Union[
     XMLTag,
-    Callable[[Any, Dict], XMLTag]
+    Callable[[Dict], XMLTag]
 ]
 
 logger = logging.getLogger()
@@ -40,9 +39,8 @@ class XMLReader(Reader):
     Can be:
 
     - An XMLTag
-    - A 
-    - A dictionary that gives the named arguments to soup.find_all()
-    - A bound method that takes the metadata of the document as input and outputs one of the above.
+    - A callable that takes the metadata of the document as input and returns an
+        XMLTag.
     '''
 
     tag_entry: TagSpecification = CurrentTag()
@@ -51,13 +49,22 @@ class XMLReader(Reader):
 
     Can be:
 
-    - None
-    - A string with the name of the tag
-    - A dictionary that gives the named arguments to soup.find_all()
-    - A bound method that takes the metadata of the document as input and outputs one of the above.
+    - An XMLTag
+    - A callable that takes the metadata of the document as input and returns an
+        XMLTag
     '''
 
     external_file_tag_toplevel: TagSpecification = CurrentTag()
+    '''
+    The toplevel tag in external files (if you are using that functionality)
+
+    Can be:
+
+    - An XMLTag
+    - A callable that takes the metadata of the document as input and returns an
+        XMLTag. The metadata dictionary includes the values of "regular" fields for
+        the document.
+    '''
 
     def source2dicts(self, source: Source) -> Iterable[Document]:
         '''
@@ -140,7 +147,6 @@ class XMLReader(Reader):
         Get the requirements for a tag given the specification and metadata.
 
         The specification can be:
-        - None
         - An `XMLTag` object
         - A callable that takes an `XMLReader` instance and a dictionary with metadata for the
             file, and returns one of the above.
