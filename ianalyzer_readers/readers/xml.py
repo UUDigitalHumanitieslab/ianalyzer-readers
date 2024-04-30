@@ -10,7 +10,7 @@ from typing import Dict, Iterable, Tuple, List
 
 from .. import extract
 from .core import Reader, Source, Document, Field
-from ..utils import XMLTag, CurrentTag, _resolve_tag, TagSpecification
+from ..xml_tag import CurrentTag, _resolve_tag, TagSpecification
 
 
 logger = logging.getLogger()

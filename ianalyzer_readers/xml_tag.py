@@ -1,7 +1,7 @@
 from typing import Iterable, Optional, Callable, Union, Dict, List
 import bs4
 
-class XMLTag:
+class Tag:
     '''
     Describes a tag in an XML tree.
 
@@ -21,7 +21,7 @@ class XMLTag:
         return soup.find_all(*self.args, **self.kwargs)
 
 
-class CurrentTag(XMLTag):
+class CurrentTag(Tag):
     '''
     An XMLTag that will return the current tag.
     '''
@@ -33,7 +33,7 @@ class CurrentTag(XMLTag):
         return [soup]
 
 
-class ParentTag(XMLTag):
+class ParentTag(Tag):
     '''
     An XMLTag that will select a parent tag based on a fixed level.
     '''
@@ -49,7 +49,7 @@ class ParentTag(XMLTag):
         return [soup]
 
 
-class FindParentTag(XMLTag):
+class FindParentTag(Tag):
     '''
     An XMLTag that will find a parent tag based on query arguments.
     '''
@@ -58,7 +58,7 @@ class FindParentTag(XMLTag):
         return soup.find_parents(*self.args, **self.kwargs)
     
 
-class SiblingTag(XMLTag):
+class SiblingTag(Tag):
     '''
     An XMLTag that will look in an element's siblings.
     '''
@@ -70,7 +70,7 @@ class SiblingTag(XMLTag):
         for tag in soup.find_previous_siblings(*self.args, **self.kwargs):
             yield tag
 
-class TransformTag(XMLTag):
+class TransformTag(Tag):
     '''
     An XMLTag that will perform a transformation function.
 
@@ -93,10 +93,10 @@ class TransformTag(XMLTag):
         return [result]
     
 
-TagSpecification = Union[XMLTag, Callable[[Dict], XMLTag]]
+TagSpecification = Union[Tag, Callable[[Dict], Tag]]
 TagsInput = Union[TagSpecification, List[TagSpecification]]
 
-def _resolve_tag(tag: TagSpecification, metadata: Dict) -> XMLTag:
+def _resolve_tag(tag: TagSpecification, metadata: Dict) -> Tag:
     if callable(tag):
         return tag(metadata)
     else:

@@ -14,7 +14,7 @@ import traceback
 from typing import Any, Dict, Callable, List, Optional
 logger = logging.getLogger()
 
-from .utils import TagsInput, _resolve_tag
+from .xml_tag import TagsInput, _resolve_tag
 
 
 class Extractor(object):

@@ -4,8 +4,8 @@ import re
 from ianalyzer_readers.readers.xml import XMLReader
 from ianalyzer_readers.extract import XML
 from ianalyzer_readers.readers.core import Field
-from ianalyzer_readers.utils import (
-    XMLTag, ParentTag, FindParentTag, SiblingTag, CurrentTag, TransformTag
+from ianalyzer_readers.xml_tag import (
+    Tag, ParentTag, FindParentTag, SiblingTag, CurrentTag, TransformTag
 ) 
 
 
@@ -45,26 +45,26 @@ def assert_extractor_output(reader, expected):
 
 
 def test_xml_basic(tmpdir):
-    extractor = XML(XMLTag('character'))
-    reader = make_test_reader(extractor, XMLTag('play'), XMLTag('lines'), basic_doc, tmpdir)
+    extractor = XML(Tag('character'))
+    reader = make_test_reader(extractor, Tag('play'), Tag('lines'), basic_doc, tmpdir)
     assert_extractor_output(reader, 'HAMLET')
 
 
 def test_xml_re_pattern_tag(tmpdir):
-    extractor = XML(XMLTag(re.compile(r'ch.r')))
-    reader = make_test_reader(extractor, XMLTag('play'), XMLTag('lines'), basic_doc, tmpdir)
+    extractor = XML(Tag(re.compile(r'ch.r')))
+    reader = make_test_reader(extractor, Tag('play'), Tag('lines'), basic_doc, tmpdir)
     assert_extractor_output(reader, 'HAMLET')
 
 
 def test_xml_transform(tmpdir):
-    extractor = XML(XMLTag('character'), transform=str.title)
-    reader = make_test_reader(extractor, XMLTag('play'), XMLTag('lines'), basic_doc, tmpdir)
+    extractor = XML(Tag('character'), transform=str.title)
+    reader = make_test_reader(extractor, Tag('play'), Tag('lines'), basic_doc, tmpdir)
     assert_extractor_output(reader, 'Hamlet')
 
 
 def test_xml_no_tag(tmpdir):
     extractor = XML(CurrentTag())
-    reader = make_test_reader(extractor, XMLTag('play'), XMLTag('character'), basic_doc, tmpdir)
+    reader = make_test_reader(extractor, Tag('play'), Tag('character'), basic_doc, tmpdir)
     assert_extractor_output(reader, 'HAMLET')
 
 
@@ -81,11 +81,11 @@ doc_with_attribute = '''
 
 def test_xml_attribute(tmpdir):
     extractor = XML(CurrentTag(), attribute='character')
-    reader = make_test_reader(extractor, XMLTag('play'), XMLTag('lines'), doc_with_attribute, tmpdir)
+    reader = make_test_reader(extractor, Tag('play'), Tag('lines'), doc_with_attribute, tmpdir)
     assert_extractor_output(reader, 'HAMLET')
 
-    extractor = XML(XMLTag('l'), attribute='n')
-    reader = make_test_reader(extractor, XMLTag('play'), XMLTag('lines'), doc_with_attribute, tmpdir)
+    extractor = XML(Tag('l'), attribute='n')
+    reader = make_test_reader(extractor, Tag('play'), Tag('lines'), doc_with_attribute, tmpdir)
     assert_extractor_output(reader, '1')
 
 doc_multiline = '''
@@ -101,14 +101,14 @@ doc_multiline = '''
 
 def test_xml_flatten(tmpdir):
     extractor = XML(CurrentTag(), flatten=True)
-    reader = make_test_reader(extractor, XMLTag('play'), XMLTag('lines'), doc_multiline, tmpdir)
+    reader = make_test_reader(extractor, Tag('play'), Tag('lines'), doc_multiline, tmpdir)
     expected = 'My hour is almost come, When I to sulph\'rous and tormenting flames Must render up myself.'
     assert_extractor_output(reader, expected)
 
 
 def test_xml_multiple(tmpdir):
-    extractor = XML(XMLTag('l'), multiple=True)
-    reader = make_test_reader(extractor, XMLTag('play'), XMLTag('lines'), doc_multiline, tmpdir)
+    extractor = XML(Tag('l'), multiple=True)
+    reader = make_test_reader(extractor, Tag('play'), Tag('lines'), doc_multiline, tmpdir)
     expected = [
         'My hour is almost come,',
         'When I to sulph\'rous and tormenting flames',
@@ -146,71 +146,71 @@ doc_nested = '''
 
 def test_xml_parent_tag(tmpdir):
     extractor = XML(ParentTag(), attribute='n')
-    reader = make_test_reader(extractor, XMLTag('play'), XMLTag('lines'), doc_nested, tmpdir)
+    reader = make_test_reader(extractor, Tag('play'), Tag('lines'), doc_nested, tmpdir)
     assert_extractor_output(reader, 'V')
 
     extractor = XML(ParentTag(2), attribute='n')
-    reader = make_test_reader(extractor, XMLTag('play'), XMLTag('lines'), doc_nested, tmpdir)
+    reader = make_test_reader(extractor, Tag('play'), Tag('lines'), doc_nested, tmpdir)
     assert_extractor_output(reader, 'I')
 
 
 def test_xml_find_parent_tag(tmpdir):
     extractor = XML(FindParentTag('act'), attribute='n')
-    reader = make_test_reader(extractor, XMLTag('play'), XMLTag('lines'), doc_nested, tmpdir)
+    reader = make_test_reader(extractor, Tag('play'), Tag('lines'), doc_nested, tmpdir)
     assert_extractor_output(reader, 'I')
 
     extractor = XML(FindParentTag('scene'), attribute='n')
-    reader = make_test_reader(extractor, XMLTag('play'), XMLTag('lines'), doc_nested, tmpdir)
+    reader = make_test_reader(extractor, Tag('play'), Tag('lines'), doc_nested, tmpdir)
     assert_extractor_output(reader, 'V')
 
 
 def test_xml_multiple_attributes(tmpdir):
-    extractor = XML(XMLTag('lines'), attribute='character', multiple=True)
-    reader = make_test_reader(extractor, XMLTag('play'), XMLTag('scene'), doc_nested, tmpdir)
+    extractor = XML(Tag('lines'), attribute='character', multiple=True)
+    reader = make_test_reader(extractor, Tag('play'), Tag('scene'), doc_nested, tmpdir)
     assert_extractor_output(reader, ['HAMLET', 'GHOST'])
 
 
 def test_xml_recursive(tmpdir):
-    extractor = XML(XMLTag('l', recursive=False))
-    reader = make_test_reader(extractor, XMLTag('play'), XMLTag('scene'), doc_nested, tmpdir)
+    extractor = XML(Tag('l', recursive=False))
+    reader = make_test_reader(extractor, Tag('play'), Tag('scene'), doc_nested, tmpdir)
     assert_extractor_output(reader, None)
 
-    extractor = XML(XMLTag('l'))
-    reader = make_test_reader(extractor, XMLTag('play'), XMLTag('scene'), doc_nested, tmpdir)
+    extractor = XML(Tag('l'))
+    reader = make_test_reader(extractor, Tag('play'), Tag('scene'), doc_nested, tmpdir)
     assert_extractor_output(reader, 'Whither wilt thou lead me? Speak, I\'ll go no further.')
 
 
 def test_xml_tag_list(tmpdir):
-    extractor = XML([XMLTag('lines'), XMLTag('l')])
-    reader = make_test_reader(extractor, XMLTag('play'), XMLTag('scene'), doc_nested, tmpdir)
+    extractor = XML([Tag('lines'), Tag('l')])
+    reader = make_test_reader(extractor, Tag('play'), Tag('scene'), doc_nested, tmpdir)
     assert_extractor_output(reader, 'Whither wilt thou lead me? Speak, I\'ll go no further.')
 
 
 def test_xml_transform_tag(tmpdir):
     find_location = lambda soup: soup.find_previous_sibling('location')
     extractor = XML(TransformTag(find_location))
-    reader = make_test_reader(extractor, XMLTag('play'), XMLTag('lines'), doc_nested, tmpdir)
+    reader = make_test_reader(extractor, Tag('play'), Tag('lines'), doc_nested, tmpdir)
     assert_extractor_output(reader, 'A more remote part of the Castle.')
 
 
 def test_xml_extract_soup_func(tmpdir):
     get_scene_number = lambda soup: soup.find_parent('scene')['n']
     extractor = XML(CurrentTag(), extract_soup_func=get_scene_number)
-    reader = make_test_reader(extractor, XMLTag('play'), XMLTag('lines'), doc_nested, tmpdir)
+    reader = make_test_reader(extractor, Tag('play'), Tag('lines'), doc_nested, tmpdir)
     assert_extractor_output(reader, 'V')
 
 
 def test_xml_entry_tag_kwargs(tmpdir):
-    extractor = XML(XMLTag('l'))
-    entry_tag = XMLTag(name='lines', character='GHOST')
-    reader = make_test_reader(extractor, XMLTag('play'), entry_tag, doc_nested, tmpdir)
+    extractor = XML(Tag('l'))
+    entry_tag = Tag(name='lines', character='GHOST')
+    reader = make_test_reader(extractor, Tag('play'), entry_tag, doc_nested, tmpdir)
     assert_extractor_output(reader, 'Mark me.')
 
 
 def test_xml_toplevel_tag_kwargs(tmpdir):
-    extractor = XML(XMLTag('l'))
-    toplevel_tag = XMLTag(name='act', n='III')
-    reader = make_test_reader(extractor, toplevel_tag, XMLTag('lines'), doc_nested, tmpdir)
+    extractor = XML(Tag('l'))
+    toplevel_tag = Tag(name='act', n='III')
+    reader = make_test_reader(extractor, toplevel_tag, Tag('lines'), doc_nested, tmpdir)
     assert_extractor_output(reader, 'To be, or not to be, that is the question.')
 
 doc_longer = '''
@@ -236,14 +236,14 @@ doc_longer = '''
 
 def test_xml_sibling_tag(tmpdir):
     extractor = XML(SiblingTag('character'))
-    reader = make_test_reader(extractor, XMLTag('play'), XMLTag('l'), doc_longer, tmpdir)
+    reader = make_test_reader(extractor, Tag('play'), Tag('l'), doc_longer, tmpdir)
     assert_extractor_output(reader, 'HAMLET')
 
     extractor = XML([
-        XMLTag('character', string='GHOST'),
+        Tag('character', string='GHOST'),
         SiblingTag('l')
     ])
-    reader = make_test_reader(extractor, XMLTag('play'), XMLTag('scene'), doc_longer, tmpdir)
+    reader = make_test_reader(extractor, Tag('play'), Tag('scene'), doc_longer, tmpdir)
     assert_extractor_output(reader, 'Mark me.')
 
 
@@ -283,9 +283,9 @@ def test_xml_external_file(tmpdir):
 
     class TestReader(XMLReader):
         data_directory = tmpdir
-        tag_toplevel = XMLTag('play')
-        tag_entry = XMLTag('lines')
-        external_file_tag_toplevel = XMLTag('bibliography')
+        tag_toplevel = Tag('play')
+        tag_entry = Tag('lines')
+        external_file_tag_toplevel = Tag('bibliography')
 
         def sources(self, *args, **kwargs):
             yield path, {'external_file': external_path}
@@ -295,7 +295,7 @@ def test_xml_external_file(tmpdir):
                 name='author',
                 extractor=XML(
                     [
-                        lambda metadata: XMLTag('title', string=metadata['title']),
+                        lambda metadata: Tag('title', string=metadata['title']),
                         SiblingTag('author')
                     ],
                     external_file=True
@@ -303,7 +303,7 @@ def test_xml_external_file(tmpdir):
             ),
             Field(
                 name='title',
-                extractor=XML(XMLTag('title'), toplevel=True)
+                extractor=XML(Tag('title'), toplevel=True)
             )
         ]
     
