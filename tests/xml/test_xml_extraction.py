@@ -285,6 +285,7 @@ def test_xml_external_file(tmpdir):
         data_directory = tmpdir
         tag_toplevel = XMLTag('play')
         tag_entry = XMLTag('lines')
+        external_file_tag_toplevel = XMLTag('bibliography')
 
         def sources(self, *args, **kwargs):
             yield path, {'external_file': external_path}
@@ -297,7 +298,7 @@ def test_xml_external_file(tmpdir):
                         lambda metadata: XMLTag('title', string=metadata['title']),
                         SiblingTag('author')
                     ],
-                    external_file={'xml_tag_toplevel': XMLTag('bibliography'), 'xml_tag_entry': None}
+                    external_file=True
                 )
             ),
             Field(

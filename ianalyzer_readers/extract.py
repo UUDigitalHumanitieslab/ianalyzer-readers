@@ -304,10 +304,7 @@ class XML(Extractor):
                  flatten: bool = False,
                  toplevel: bool = False,
                  multiple: bool = False,
-                 external_file: Dict = {
-                     'xml_tag_toplevel': None,
-                     'xml_tag_entry': None
-                 },
+                 external_file: bool = False,
                  extract_soup_func: Optional[Callable] = None,
                  *nargs,
                  **kwargs
@@ -318,7 +315,7 @@ class XML(Extractor):
         self.flatten = flatten
         self.toplevel = toplevel
         self.multiple = multiple
-        self.external_file = external_file if external_file['xml_tag_toplevel'] else None
+        self.external_file = external_file
         self.extract_soup_func = extract_soup_func
         super().__init__(*nargs, **kwargs)
 
