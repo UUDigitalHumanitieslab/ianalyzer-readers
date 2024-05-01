@@ -63,7 +63,7 @@ def test_xml_transform(tmpdir):
 
 
 def test_xml_no_tag(tmpdir):
-    extractor = XML(CurrentTag())
+    extractor = XML()
     reader = make_test_reader(extractor, Tag('play'), Tag('character'), basic_doc, tmpdir)
     assert_extractor_output(reader, 'HAMLET')
 
@@ -80,7 +80,7 @@ doc_with_attribute = '''
 
 
 def test_xml_attribute(tmpdir):
-    extractor = XML(CurrentTag(), attribute='character')
+    extractor = XML(attribute='character')
     reader = make_test_reader(extractor, Tag('play'), Tag('lines'), doc_with_attribute, tmpdir)
     assert_extractor_output(reader, 'HAMLET')
 
@@ -100,7 +100,7 @@ doc_multiline = '''
 '''
 
 def test_xml_flatten(tmpdir):
-    extractor = XML(CurrentTag(), flatten=True)
+    extractor = XML(flatten=True)
     reader = make_test_reader(extractor, Tag('play'), Tag('lines'), doc_multiline, tmpdir)
     expected = 'My hour is almost come, When I to sulph\'rous and tormenting flames Must render up myself.'
     assert_extractor_output(reader, expected)

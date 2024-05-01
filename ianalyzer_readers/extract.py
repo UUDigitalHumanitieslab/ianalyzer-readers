@@ -274,6 +274,8 @@ class XML(Extractor):
         tags:
             Tags to select. Each of these can be a `Tag` object, or a callable that
             takes the document metadata as input and returns a `Tag`.
+
+            If no tags are provided, the extractor will work form the starting tag.
             
             Tags represent a query to select tags from current tag (e.g. the entry tag of
             the document). If you provide multiple, they are chained: each Tag query is
@@ -341,6 +343,8 @@ class XML(Extractor):
             tag = resolve_tag_specification(tags[0], metadata)
             for result in tag.find_in_soup(soup):
                 yield result
+        else:
+            yield soup
 
 
     def _apply(self, soup_top, soup_entry, *nargs, **kwargs):
