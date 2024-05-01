@@ -228,6 +228,13 @@ def test_xml_toplevel_tag_kwargs(tmpdir):
     reader = make_test_reader(extractor, toplevel_tag, Tag('lines'), doc_nested, tmpdir)
     assert_extractor_output(reader, 'To be, or not to be, that is the question.')
 
+def test_xml_toplevel_tag_callable(tmpdir):
+    extractor = XML(Tag('l'))
+    toplevel_tag = lambda metadata: Tag(name='act', n='III')
+    reader = make_test_reader(extractor, toplevel_tag, Tag('lines'), doc_nested, tmpdir)
+    assert_extractor_output(reader, 'To be, or not to be, that is the question.')
+
+
 doc_longer = '''
 <?xml version="1.0" encoding="UTF-8"?>
 <play>

@@ -112,11 +112,11 @@ class XMLReader(Reader):
             field.name for field in self.fields if field.required]
 
         # iterate through entries
-        top_tag = resolve_tag_specification(self.tag_toplevel, metadata)
+        top_tag = resolve_tag_specification(self.__class__.tag_toplevel, metadata)
         bowl = top_tag.find_next_in_soup(soup)
 
         if bowl:
-            entry_tag = resolve_tag_specification(self.tag_entry, metadata)
+            entry_tag = resolve_tag_specification(self.__class__.tag_entry, metadata)
             spoonfuls = entry_tag.find_in_soup(bowl)
             for i, spoon in enumerate(spoonfuls):
                 # Extract fields from the soup
@@ -153,7 +153,7 @@ class XMLReader(Reader):
         return a dictionary with tags which were found in that metadata
         wrt to the current source.
         '''
-        tag = resolve_tag_specification(self.external_file_tag_toplevel, metadata)
+        tag = resolve_tag_specification(self.__class__.external_file_tag_toplevel, metadata)
         bowl = tag.find_next_in_soup(soup)
 
         if not bowl:
