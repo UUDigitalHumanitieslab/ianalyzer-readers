@@ -618,7 +618,7 @@ class RDF(Extractor):
                 node = list(graph.objects(subject, self.predicate))[0]
                 return self.get_value(node)
 
-    def get_value(node):
+    def get_value(self, node):
         if type(node) == Literal:
             return node.value
         elif type(node) == URIRef:
