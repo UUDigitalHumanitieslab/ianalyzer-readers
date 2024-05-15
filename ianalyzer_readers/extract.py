@@ -6,13 +6,17 @@ Some extractors are intended to work with specific `Reader` classes, while other
 are generic.
 '''
 
-import bs4
-import html
+from os.path import split
 import re
 import logging
 import traceback
-from rdflib import BNode, Graph, URIRef
 from typing import Any, Dict, Callable, Union, List, Pattern, Optional
+
+import bs4
+import html
+from rdflib import BNode, Graph, Literal, URIRef
+from rdflib.collection import Collection
+
 logger = logging.getLogger()
 
 
@@ -590,15 +594,31 @@ class ExternalFile(Extractor):
 
 
 class RDF(Extractor):
-    def __init__(self, predicate: URIRef, node_type: str = 'object', *nargs, **kwargs):
+    ''' An extractor to extract data from RDF triples
+    Parameters:
+        predicate: the predicate for triples of interest
+        node_type: either the subject or object of the triple is returned
+        flatten: whether object values should be flattened into one string
+    '''
+
+    def __init__(self, predicate: URIRef, node_type: str = 'object', multiple: bool = False, *nargs, **kwargs):
         self.predicate = predicate
         self.node_type = node_type
+        self.multiple = multiple
         super().__init__(*nargs, **kwargs)
 
-    def _apply(self, subject: BNode = None, graph: Graph = None, metadata: dict = {}) -> str | None:
+    def _apply(self, graph: Graph = None, subject: BNode = None, *nargs, **kwargs) -> str | None:
         if self.node_type == 'subject':
             return subject
         else:
-            objects = list(graph.objects(subject, self.predicate))
-            if len(objects):
-                return objects[0].value
+            if self.multiple:
+                collection = Collection(graph, subject)
+                return [node.value for node in list(collection)]
+            else:
+                object = list(graph.objects(subject, self.predicate))[0]
+                if type(object) == Literal:
+                    return object.value
+                elif type(object) == URIRef:
+                    return split(object)[-1]
+                else:
+                    return object

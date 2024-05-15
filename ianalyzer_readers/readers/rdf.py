@@ -1,4 +1,4 @@
-from typing import List, Dict, Iterable
+from typing import Iterable
 
 from rdflib import BNode, Graph
 
@@ -27,10 +27,19 @@ class RDFReader(Reader):
         filename = source
         g = Graph()
         g.parse(filename)
-        distinct_subjects = list(set(list(g.subjects())))
-        for subject in distinct_subjects:
-            yield self._document_from_triples(g, subject)
+        document_subjects = self.document_subjects(g)
+        for subject in document_subjects:
+            yield self._document_from_subject(g, subject)
 
-    def _document_from_triples(self, graph: Graph, subject: BNode) -> dict:
-        return {field.name: field.extractor.apply(
-                subject=subject, graph=graph, metadata={}) for field in self.fields}
+    def document_subjects(self, graph: Graph) -> list:
+        ''' override this function such that each subject can be used to
+        retrieve a separate document in the resulting index
+        Parameters:
+            graph: the graph to parse
+        Returns:
+            list of lists of triples
+        '''
+        return list(graph.subjects())
+
+    def _document_from_subject(self, graph: Graph, subject: BNode) -> dict:
+        return {field.name: field.extractor.apply(graph=graph, subject=subject) for field in self.fields}

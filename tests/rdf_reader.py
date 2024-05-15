@@ -24,17 +24,23 @@ class TestRDFReader(RDFReader):
 
     data_directory = os.path.join(here, 'ttl_example')
 
-    def document_subects(self, graph: Graph):
-        ''' get all subjects which do not contain objects with a RDF.rest predicate '''
-        have_rest = list(graph.subjects(RDF.rest))
-        subjects = [subj for subj in list(
-            graph.subjects) if subj not in have_rest]
+    def document_subjects(self, graph: Graph):
+        ''' get all subjects with a `hasSpeaker` predicate '''
+        subjects = sorted(list(graph.subjects(URIRef(ns_speaker))))
         return subjects
 
     def sources(self, **kwargs):
         for filename in glob(f'{self.data_directory}/*.ttl'):
             full_path = os.path.join(self.data_directory, filename)
             yield full_path
+
+    identifier = Field(
+        'id',
+        RDFExtractor(
+            URIRef(ns_line_id),
+            node_type='subject'
+        )
+    )
 
     character = Field(
         'character',
@@ -55,25 +61,23 @@ class TestRDFReader(RDFReader):
 
 
 def create_test_data():
+    ''' Use the example.csv file to write a document in turtle format '''
     graph = Graph()
     with open('./tests/csv_example/example.csv', 'r') as f:
         reader = csv.DictReader(f)
         character = ''
         for index, row in enumerate(reader):
             identifier = f'{ns_line_id}/hamlet-actI-scene5-{index}'
-            if character == row['character']:
-                graph.add((URIRef(identifier),
-                           RDF.first, Literal(row['line'])))
-            else:
-                if index > 0:
-                    # remove the reference to the next line if this is a new speaker
-                    graph.remove(rest_triple)
+            if character != row['character']:
                 character = row['character']
                 graph.add((URIRef(identifier),
-                           RDF.first, Literal(row['line'])))
+                           URIRef(ns_speaker), URIRef(f'{ns_character}/{character}')))
+                if index > 0:
+                    # remove the last rest triple, as this line starts a new utterance
+                    graph.remove(rest_triple)
 
             graph.add((URIRef(identifier),
-                       URIRef(ns_speaker), URIRef(f'{ns_character}/{character}')))
+                       RDF.first, Literal(row['line'])))
 
             next_id = f'{ns_line_id}/hamlet-actI-scene5-{index+1}'
             rest_triple = (URIRef(identifier),

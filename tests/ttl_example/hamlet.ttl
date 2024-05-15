@@ -1,0 +1,33 @@
+@prefix ns1: <http://example.org/shakespeare/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+<http://example.org/shakespeare/line/hamlet-actI-scene5-0> ns1:hasSpeaker <http://example.org/shakespeare/character/HAMLET> ;
+    rdf:first "Whither wilt thou lead me? Speak, I'll go no further." .
+
+<http://example.org/shakespeare/line/hamlet-actI-scene5-1> ns1:hasSpeaker <http://example.org/shakespeare/character/GHOST> ;
+    rdf:first "Mark me." .
+
+<http://example.org/shakespeare/line/hamlet-actI-scene5-2> ns1:hasSpeaker <http://example.org/shakespeare/character/HAMLET> ;
+    rdf:first "I will." .
+
+<http://example.org/shakespeare/line/hamlet-actI-scene5-3> ns1:hasSpeaker <http://example.org/shakespeare/character/GHOST> ;
+    rdf:first "My hour is almost come," ;
+    rdf:rest <http://example.org/shakespeare/line/hamlet-actI-scene5-4> .
+
+<http://example.org/shakespeare/line/hamlet-actI-scene5-6> ns1:hasSpeaker <http://example.org/shakespeare/character/HAMLET> ;
+    rdf:first "Alas, poor ghost!" .
+
+<http://example.org/shakespeare/line/hamlet-actI-scene5-7> ns1:hasSpeaker <http://example.org/shakespeare/character/GHOST> ;
+    rdf:first "Pity me not, but lend thy serious hearing" ;
+    rdf:rest <http://example.org/shakespeare/line/hamlet-actI-scene5-8> .
+
+<http://example.org/shakespeare/line/hamlet-actI-scene5-9> ns1:hasSpeaker <http://example.org/shakespeare/character/HAMLET> ;
+    rdf:first "Speak, I am bound to hear." .
+
+<http://example.org/shakespeare/line/hamlet-actI-scene5-4> rdf:first "When I to sulph'rous and tormenting flames" ;
+    rdf:rest <http://example.org/shakespeare/line/hamlet-actI-scene5-5> .
+
+<http://example.org/shakespeare/line/hamlet-actI-scene5-5> rdf:first "Must render up myself." .
+
+<http://example.org/shakespeare/line/hamlet-actI-scene5-8> rdf:first "To what I shall unfold." .
+
