@@ -607,18 +607,21 @@ class RDF(Extractor):
         self.multiple = multiple
         super().__init__(*nargs, **kwargs)
 
-    def _apply(self, graph: Graph = None, subject: BNode = None, *nargs, **kwargs) -> str | None:
+    def _apply(self, graph: Graph = None, subject: BNode = None, *nargs, **kwargs):
         if self.node_type == 'subject':
             return subject
         else:
             if self.multiple:
                 collection = Collection(graph, subject)
-                return [node.value for node in list(collection)]
+                return [self.get_value(node) for node in list(collection)]
             else:
-                object = list(graph.objects(subject, self.predicate))[0]
-                if type(object) == Literal:
-                    return object.value
-                elif type(object) == URIRef:
-                    return split(object)[-1]
-                else:
-                    return object
+                node = list(graph.objects(subject, self.predicate))[0]
+                return self.get_value(node)
+
+    def get_value(node):
+        if type(node) == Literal:
+            return node.value
+        elif type(node) == URIRef:
+            return split(node)[-1]
+        else:
+            return node
