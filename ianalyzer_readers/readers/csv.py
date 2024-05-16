@@ -76,7 +76,7 @@ class CSVReader(Reader):
         if isinstance(source, str):
             filename = source
             metadata = {}
-        if isinstance(source, bytes):
+        elif isinstance(source, bytes):
             raise NotImplementedError()
         else:
             filename, metadata = source

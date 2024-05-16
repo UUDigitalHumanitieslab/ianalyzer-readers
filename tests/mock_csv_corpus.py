@@ -15,9 +15,7 @@ class TestCSVReader(CSVReader):
     def sources(self, **kwargs):
         for filename in os.listdir(self.data_directory):
             full_path = os.path.join(self.data_directory, filename)
-            yield full_path, {
-                'filename': filename
-            }
+            yield full_path
 
     fields = [
         Field(
