@@ -30,8 +30,6 @@ class Tag:
     - attributes of the tag
     - the string content of the tag
     - a function
-
-    Note that `find_all()` also supports 
     
     Parameters:
         *args: positional arguments to pass on to `soup.find_all()`
