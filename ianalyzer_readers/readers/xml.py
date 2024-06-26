@@ -4,70 +4,71 @@ This module defines the XML Reader.
 Extraction is based on BeautifulSoup.
 '''
 
-from .. import extract
-from .core import Reader, Source, Document
-import itertools
 import bs4
 import logging
-from typing import Union, Dict, Callable, Any, Iterable
+from typing import Dict, Iterable, Tuple, List
+
+from .. import extract
+from .core import Reader, Source, Document, Field
+from ..xml_tag import CurrentTag, resolve_tag_specification, TagSpecification
+
 
 logger = logging.getLogger()
-
-TagSpecification = Union[
-    None,
-    str,
-    Dict[str, Any],
-    Callable[[Any, Dict], Union[None, str, Dict[str, Any]]]
-]
-'''
-A specification for an XML tag used in the `XMLReader`.
-
-These can be:
-
-- None
-- a string with the name of the tag
-- a dictionary with the named arguments that should be passed to the `find()` / `find_all()`
-    method of a BeautifulSoup node.
-- A callable that takes an `XMLReader` instance and a dictionary with file metadata, and
-    returns any of the above.
-'''
 
 class XMLReader(Reader):
     '''
     A base class for Readers that extract data from XML files.
 
-    The built-in functionality of the XML reader is quite versatile, and can be further expanded by
-    adding custom functions to XML extractors that interact directly with BeautifulSoup nodes.
+    The built-in functionality of the XML reader is quite versatile, and can be further
+    expanded by adding custom Tag classes or extraction functions that interact directly with
+    BeautifulSoup nodes.
 
-    The Reader is suitable for datasets where each file should be extracted as a single document, or
-    ones where each file contains multiple documents.
+    The Reader is suitable for datasets where each file should be extracted as a single
+    document, or ones where each file contains multiple documents.
 
-    In addition to generic extractor classes, this reader supports the `XML` and
-    `FilterAttribute` extractors.
+    In addition to generic extractor classes, this reader supports the `XML` extractor.
+
+    Attributes:
+        tag_toplevel: the top-level tag to search from in source documents.
+        tag_entry: the tag that corresponds to a single document entry in source
+            documents.
+        external_file_tag_toplevel: the top-level tag to search from in external
+            documents (if that functionality is used)
+
     '''
 
-    tag_toplevel: TagSpecification = None
+    tag_toplevel: TagSpecification = CurrentTag()
     '''
     The top-level tag in the source documents.
 
     Can be:
 
-    - None
-    - A string with the name of the tag
-    - A dictionary that gives the named arguments to soup.find_all()
-    - A bound method that takes the metadata of the document as input and outputs one of the above.
+    - An XMLTag
+    - A callable that takes the metadata of the document as input and returns an
+        XMLTag.
     '''
 
-    tag_entry: TagSpecification = None
+    tag_entry: TagSpecification = CurrentTag()
     '''
     The tag that corresponds to a single document entry.
 
     Can be:
 
-    - None
-    - A string with the name of the tag
-    - A dictionary that gives the named arguments to soup.find_all()
-    - A bound method that takes the metadata of the document as input and outputs one of the above.
+    - An XMLTag
+    - A callable that takes the metadata of the document as input and returns an
+        XMLTag
+    '''
+
+    external_file_tag_toplevel: TagSpecification = CurrentTag()
+    '''
+    The toplevel tag in external files (if you are using that functionality).
+
+    Can be:
+
+    - An XMLTag
+    - A callable that takes the metadata of the document as input and returns an
+        XMLTag. The metadata dictionary includes the values of "regular" fields for
+        the document.
     '''
 
     def source2dicts(self, source: Source) -> Iterable[Document]:
@@ -86,125 +87,101 @@ class XMLReader(Reader):
         # Make sure that extractors are sensible
         self._reject_extractors(extract.CSV)
 
+        filename, soup, metadata = self._filename_soup_and_metadata_from_source(source)
+
+        # split fields that read an external file from regular fields
+        external_fields = [field for field in self.fields if
+            isinstance(field.extractor, extract.XML) and field.extractor.external_file
+        ]
+        regular_fields = [field for field in self.fields if
+            field not in external_fields
+        ]
+
         # extract information from external xml files first, if applicable
-        metadata = {}
-        if isinstance(source, str):
-            # no metadata
-            filename = source
-            soup = self._soup_from_xml(filename)
-        elif isinstance(source, bytes):
-            soup = self._soup_from_data(source)
-            filename = soup.find('RecordID')
-        else:
-            filename = source[0]
-            soup = self._soup_from_xml(filename)
-            metadata = source[1] or None
-            soup = self._soup_from_xml(filename)
-        if metadata and 'external_file' in metadata:
-            external_fields = [field for field in self.fields if
-                               isinstance(field.extractor, extract.XML) and
-                               field.extractor.external_file]
-            regular_fields = [field for field in self.fields if
-                              field not in external_fields]
-            external_soup = self._soup_from_xml(metadata['external_file'])
-        else:
-            regular_fields = self.fields
-            external_dict = {}
-            external_fields = None
+        if len(external_fields):
+            if  metadata and 'external_file' in metadata:
+                external_soup = self._soup_from_xml(metadata['external_file'])
+            else:
+                logger.warn(
+                    'Some fields have external_file property, but no external file is '
+                    'provided in the source metadata'
+                )
+                external_soup = None        
+
         required_fields = [
             field.name for field in self.fields if field.required]
-        # Extract fields from the soup
-        tag = self._get_tag_requirements(self.tag_entry, metadata)
-        bowl = self._bowl_from_soup(soup, metadata=metadata)
+
+        # iterate through entries
+        top_tag = resolve_tag_specification(self.__class__.tag_toplevel, metadata)
+        bowl = top_tag.find_next_in_soup(soup)
+
         if bowl:
-            spoonfuls = bowl.find_all(**tag) if tag else [bowl]
+            entry_tag = resolve_tag_specification(self.__class__.tag_entry, metadata)
+            spoonfuls = entry_tag.find_in_soup(bowl)
             for i, spoon in enumerate(spoonfuls):
-                regular_field_dict = {field.name: field.extractor.apply(
-                    # The extractor is put to work by simply throwing at it
-                    # any and all information it might need
-                    soup_top=bowl,
-                    soup_entry=spoon,
-                    metadata=metadata,
-                    index=i,
-                ) for field in regular_fields if not field.skip}
-                external_dict = {}
-                if external_fields:
-                    metadata.update(regular_field_dict)
+                # Extract fields from the soup
+                field_dict = {
+                    field.name: field.extractor.apply(
+                        soup_top=bowl,
+                        soup_entry=spoon,
+                        metadata=metadata,
+                        index=i,
+                    ) for field in regular_fields if not field.skip
+                }
+
+                if external_fields and external_soup:
+                    metadata.update(field_dict)
                     external_dict = self._external_source2dict(
                         external_soup, external_fields, metadata)
+                else:
+                    external_dict = {
+                        field.name: None
+                        for field in external_fields
+                    }
 
                 # yield the union of external fields and document fields
-                full_dict = dict(itertools.chain(
-                    external_dict.items(), regular_field_dict.items()))
-
-                # check if required fields are filled
-                if all((full_dict[field_name]
-                        for field_name in required_fields)):
-                    yield full_dict
+                field_dict.update(external_dict)
+                if all(field_name in field_dict for field_name in required_fields):
+                    yield field_dict
         else:
             logger.warning(
                 'Top-level tag not found in `{}`'.format(filename))
 
-    def _get_tag_requirements(self, specification, metadata):
-        '''
-        Get the requirements for a tag given the specification and metadata.
-
-        The specification can be:
-        - None
-        - A string with the name of the tag
-        - A dict with the named arguments to soup.find() / soup.find_all()
-        - A callable that takes the document metadata as input and outputs one of the above.
-
-        Output is either None or a dict with the arguments for soup.find() / soup.find_all()
-        '''
-
-        if callable(specification):
-            condition = specification(metadata)
-        else:
-            condition = specification
-
-        if condition is None:
-            return None
-        elif type(condition) == str:
-            return {'name': condition}
-        elif type(condition) == dict:
-            return condition
-        else:
-            raise TypeError('Tag must be a string or dict')
-
-    def _external_source2dict(self, soup, external_fields, metadata):
+    def _external_source2dict(self, soup, external_fields: List[Field], metadata: Dict):
         '''
         given an external xml file with metadata,
         return a dictionary with tags which were found in that metadata
         wrt to the current source.
         '''
-        external_dict = {}
-        for field in external_fields:
-            bowl = self._bowl_from_soup(
-                soup, field.extractor.external_file['xml_tag_toplevel'])
-            spoon = None
-            if field.extractor.secondary_tag:
-                # find a specific subtree in the xml tree identified by matching a secondary tag
-                try:
-                    spoon = bowl.find(
-                        field.extractor.secondary_tag['tag'],
-                        string=metadata[field.extractor.secondary_tag['match']]).parent
-                except:
-                    logging.debug('tag {} not found in metadata'.format(
-                        field.extractor.secondary_tag
-                    ))
-            if not spoon:
-                spoon = field.extractor.external_file['xml_tag_entry']
-            if bowl:
-                external_dict[field.name] = field.extractor.apply(
-                    soup_top=bowl,
-                    soup_entry=spoon,
-                    metadata=metadata
-                )
-            else:
-                logger.warning(
-                    'Top-level tag not found in `{}`'.format(bowl))
-        return external_dict
+        tag = resolve_tag_specification(self.__class__.external_file_tag_toplevel, metadata)
+        bowl = tag.find_next_in_soup(soup)
+
+        if not bowl:
+            logger.warning(
+                'Top-level tag not found in `{}`'.format(metadata['external_file']))
+            return {field.name: None for field in external_fields}
+
+        return {
+            field.name: field.extractor.apply(
+                soup_top=bowl, soup_entry=bowl, metadata=metadata
+            )
+            for field in external_fields
+        }
+
+    def _filename_soup_and_metadata_from_source(self, source: Source) -> Tuple[str, bs4.BeautifulSoup, Dict]:
+        if isinstance(source, str):
+            filename = source
+            soup = self._soup_from_xml(filename)
+            metadata = {}
+        elif isinstance(source, bytes):
+            soup = self._soup_from_data(source)
+            filename = None
+            metadata = {}
+        else:
+            filename = source[0]
+            soup = self._soup_from_xml(filename)
+            metadata = source[1] or None
+        return filename, soup, metadata
 
     def _soup_from_xml(self, filename):
         '''
@@ -222,64 +199,3 @@ class XMLReader(Reader):
         Parses content of a xml file
         '''
         return bs4.BeautifulSoup(data, 'lxml-xml')
-
-    def _bowl_from_soup(self, soup, toplevel_tag=None, entry_tag=None, metadata = {}):
-        '''
-        Returns bowl (subset of soup) of soup object. Bowl contains everything within the toplevel tag.
-        If no such tag is present, it contains the entire soup.
-        '''
-        if toplevel_tag == None:
-            toplevel_tag = self._get_tag_requirements(self.tag_toplevel, metadata)
-        else:
-            toplevel_tag = self._get_tag_requirements(toplevel_tag, metadata)
-
-        return soup.find(**toplevel_tag) if toplevel_tag else soup
-
-    def _metadata_from_xml(self, filename, tags):
-        '''
-        Given a filename of an xml with metadata, and a range of tags to extract,
-        return a dictionary of all the contents of the requested tags.
-        A tag can either be a string, or a dictionary:
-        {
-            "tag": "tag_to_extract",
-            "attribute": attribute to additionally filter on, optional
-            "save_as": key to use in output dictionary, optional
-        }
-        '''
-        out_dict = {}
-        soup = self._soup_from_xml(filename)
-        for tag in tags:
-            if isinstance(tag, str):
-                tag_info = soup.find(tag)
-                if not tag_info:
-                    continue
-                out_dict[tag] = tag_info.text
-            else:
-                candidates = soup.find_all(tag['tag'])
-                if 'attribute' in tag:
-                    right_tag = next((candidate for candidate in candidates if
-                                      candidate.attrs == tag['attribute']), None)
-                elif 'list' in tag:
-                    if 'subtag' in tag:
-                        right_tag = [candidate.find(
-                            tag['subtag']) for candidate in candidates]
-                    else:
-                        right_tag = candidates
-                elif 'subtag' in tag:
-                    right_tag = next((candidate.find(tag['subtag']) for candidate in candidates if
-                                      candidate.find(tag['subtag'])), None)
-                else:
-                    right_tag = next((candidate for candidate in candidates if
-                                      candidate.attrs == {}), None)
-                if not right_tag:
-                    continue
-                if 'save_as' in tag:
-                    out_tag = tag['save_as']
-                else:
-                    out_tag = tag['tag']
-                if 'list' in tag:
-                    out_dict[out_tag] = [t.text for t in right_tag]
-                else:
-                    out_dict[out_tag] = right_tag.text
-        return out_dict
-

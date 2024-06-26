@@ -62,7 +62,7 @@ class XLSXReader(Reader):
                 are based on the extractor of each field.
         '''
 
-        self._reject_extractors(extract.XML, extract.FilterAttribute)
+        self._reject_extractors(extract.XML)
 
         if isinstance(source, str):
             filename = source

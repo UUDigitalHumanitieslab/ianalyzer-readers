@@ -3,6 +3,7 @@ import os
 from ianalyzer_readers.readers.xml import XMLReader
 from ianalyzer_readers.readers.core import Field
 from ianalyzer_readers.extract import XML
+from ianalyzer_readers.xml_tag import Tag, CurrentTag
 
 class HamletXMLReader(XMLReader):
     """
@@ -11,8 +12,8 @@ class HamletXMLReader(XMLReader):
 
     data_directory = os.path.join(os.path.dirname(__file__), 'data')
 
-    tag_toplevel = 'document'
-    tag_entry = 'lines'
+    tag_toplevel = Tag('document')
+    tag_entry = Tag('lines')
 
     def sources(self, **kwargs):
         for filename in os.listdir(self.data_directory):
@@ -23,15 +24,22 @@ class HamletXMLReader(XMLReader):
 
     title = Field(
         'title',
-        XML('title', toplevel=True, recursive=True)
+        XML(
+            Tag('title'),
+            toplevel=True
+        )
     )
     character = Field(
         'character',
-        XML(None, attribute='character')
+        XML(CurrentTag(), attribute='character')
     )
     lines = Field(
         'lines',
-        XML('l', multiple=True, transform='\n'.join),
+        XML(
+            Tag('l'),
+            multiple=True,
+            transform='\n'.join
+        ),
     )
 
     fields = [title, character, lines]
