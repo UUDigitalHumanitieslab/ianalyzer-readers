@@ -617,7 +617,7 @@ class RDF(Extractor):
         self.is_collection = is_collection
         super().__init__(**kwargs)
 
-    def _apply(self, graph: Graph = None, subject: BNode = None, *nargs, **kwargs) -> Union[str, list[str]]:
+    def _apply(self, graph: Graph = None, subject: BNode = None, *nargs, **kwargs) -> Union[str, List[str]]:
         ''' apply a query to the RDFReader's graph, with one subject resulting from the `document_subjects` function
         Parameters:
             graph: a graph in which to query (set on RDFReader)
@@ -635,7 +635,7 @@ class RDF(Extractor):
             return [self.get_node_value(node) for node in nodes]
         return self.get_node_value(nodes[0])
 
-    def _select(self, graph, subject, predicates: Iterable[URIRef]) -> list[Union[Literal | URIRef | BNode]]:
+    def _select(self, graph, subject, predicates: Iterable[URIRef]) -> List[Union[Literal | URIRef | BNode]]:
         ''' search in a graph with predicates
             if more than one predicate is passed, this is a recursive query:
             the first search result of the query is used as a subject in the next query
