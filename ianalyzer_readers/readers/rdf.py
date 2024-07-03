@@ -37,7 +37,7 @@ class RDFReader(Reader):
         Parameters:
             graph: the graph to parse
         Returns:
-            list of lists of triples
+            list of nodes
         '''
         return list(graph.subjects())
 

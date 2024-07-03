@@ -13,6 +13,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 
 ns_character = "http://example.org/shakespeare/character"
 ns_speaker = "http://example.org/shakespeare/hasSpeaker"
+ns_opacity = "http://example.org/vision/hasOpacity"
 ns_text = "http://example.org/shakespeare/hasText"
 ns_line_id = "http://example.org/shakespeare/line"
 
@@ -41,23 +42,28 @@ class TestRDFReader(RDFReader):
             node_type='subject'
         )
     )
-
     character = Field(
         'character',
         RDFExtractor(
-            URIRef(ns_speaker),
-            transform=lambda k: str(k)
+            URIRef(ns_speaker)
         )
     )
     lines = Field(
         'lines',
         RDFExtractor(
             URIRef(ns_text),
-            multiple=True
+            is_collection=True
+        )
+    )
+    character_opacity = Field(
+        'opacity',
+        RDFExtractor(
+            URIRef(ns_speaker),
+            URIRef(ns_opacity)
         )
     )
 
-    fields = [character, lines]
+    fields = [character, lines, character_opacity]
 
 
 def create_test_data():
@@ -85,5 +91,9 @@ def create_test_data():
             graph.add(rest_triple)
 
         graph.remove((rest_triple))
+        graph.add((URIRef(f'{ns_character}/HAMLET'),
+                   URIRef(ns_opacity), Literal(1.0)))
+        graph.add((URIRef(f'{ns_character}/GHOST'),
+                   URIRef(ns_opacity), Literal(0.3)))
 
         graph.serialize(destination='./tests/ttl_example/hamlet.ttl')

@@ -10,7 +10,7 @@ from os.path import split
 import re
 import logging
 import traceback
-from typing import Any, Dict, Callable, Union, List, Pattern, Optional
+from typing import Any, Dict, Callable, Union, List, Pattern, Optional, Iterable
 
 import bs4
 import html
@@ -596,29 +596,64 @@ class ExternalFile(Extractor):
 class RDF(Extractor):
     ''' An extractor to extract data from RDF triples
     Parameters:
-        predicate: the predicate for triples of interest
-        node_type: either the subject or object of the triple is returned
-        flatten: whether object values should be flattened into one string
+        predicates: 
+            an iteratble of predicates with which to query for triples of interest
+        node_type:
+            either the subject or object of the triple is returned
+            default: 'object'; returning the subject instead can be useful, e.g., for identifiers
+        multiple: 
+            if `True`, return a list of all nodes for which the query returns a result,
+            if `False`, return the first node matching a query
+        is_collection:
+            specify whether the data of interest is a collection, i.e., sequential data
+            this is specified by the predicates `rdf:first` and `rdf:rest`, see https://rdflib.readthedocs.io/en/stable/_modules/rdflib/collection.html
+
     '''
 
-    def __init__(self, predicate: URIRef, node_type: str = 'object', multiple: bool = False, *nargs, **kwargs):
-        self.predicate = predicate
+    def __init__(self, *predicates: Iterable[URIRef], node_type: str = 'object', multiple: bool = False, is_collection: bool = False, **kwargs):
+        self.predicates = predicates
         self.node_type = node_type
         self.multiple = multiple
-        super().__init__(*nargs, **kwargs)
+        self.is_collection = is_collection
+        super().__init__(**kwargs)
 
-    def _apply(self, graph: Graph = None, subject: BNode = None, *nargs, **kwargs):
+    def _apply(self, graph: Graph = None, subject: BNode = None, *nargs, **kwargs) -> Union[str, list[str]]:
+        ''' apply a query to the RDFReader's graph, with one subject resulting from the `document_subjects` function
+        Parameters:
+            graph: a graph in which to query (set on RDFReader)
+            subject: the subject with which to query
+        Returns:
+            a string or list of strings
+        '''
         if self.node_type == 'subject':
-            return subject
-        else:
-            if self.multiple:
-                collection = Collection(graph, subject)
-                return [self.get_value(node) for node in list(collection)]
-            else:
-                node = list(graph.objects(subject, self.predicate))[0]
-                return self.get_value(node)
+            return self.get_node_value(subject)
+        if self.is_collection:
+            collection = Collection(graph, subject)
+            return [self.get_node_value(node) for node in list(collection)]
+        nodes = self._select(graph, subject, self.predicates)
+        if self.multiple:
+            return [self.get_node_value(node) for node in nodes]
+        return self.get_node_value(nodes[0])
 
-    def get_value(self, node):
+    def _select(self, graph, subject, predicates: Iterable[URIRef]) -> list[Union[Literal | URIRef | BNode]]:
+        ''' search in a graph with predicates
+            if more than one predicate is passed, this is a recursive query:
+            the first search result of the query is used as a subject in the next query
+            Parameters:
+                subject: the subject with which to query
+                graph: the graph to search
+                predicates: a list of predicates with which to query
+            Returns:
+                a list of nodes matching the query
+        '''
+        nodes = list(graph.objects(subject, predicates[0]))
+        if len(predicates) > 1:
+            return self._select(graph, nodes[0], predicates[1:])
+        else:
+            return nodes
+
+    def get_node_value(self, node):
+        ''' return a string value extracted from the node '''
         if type(node) == Literal:
             return node.value
         elif type(node) == URIRef:

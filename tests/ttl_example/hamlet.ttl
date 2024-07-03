@@ -1,5 +1,11 @@
 @prefix ns1: <http://example.org/shakespeare/> .
+@prefix ns2: <http://example.org/vision/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<http://example.org/shakespeare/character/GHOST> ns2:hasOpacity 3e-01 .
+
+<http://example.org/shakespeare/character/HAMLET> ns2:hasOpacity 1e+00 .
 
 <http://example.org/shakespeare/line/hamlet-actI-scene5-0> ns1:hasSpeaker <http://example.org/shakespeare/character/HAMLET> ;
     rdf:first "Whither wilt thou lead me? Speak, I'll go no further." .
