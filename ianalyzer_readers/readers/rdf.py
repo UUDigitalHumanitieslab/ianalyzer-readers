@@ -24,7 +24,7 @@ class RDFReader(Reader):
         Given a RDF source file, returns an iterable of extracted documents.
 
         Parameters:
-            source: the source file to extract. This is a string of the file path
+            source: the source file to extract. This can be a string of the file path, or a tuple of the file path and metadata.
 
         Returns:
             an iterable of document dictionaries. Each of these is a dictionary,
