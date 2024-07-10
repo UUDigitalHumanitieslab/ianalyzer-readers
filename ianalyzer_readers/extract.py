@@ -595,18 +595,21 @@ class ExternalFile(Extractor):
 
 class RDF(Extractor):
     ''' An extractor to extract data from RDF triples
+
     Parameters:
         predicates: 
-            an iteratble of predicates with which to query for triples of interest
+            an iteratble of predicates (i.e., the middle part of a RDF triple) with which to query for objects
         node_type:
-            either the subject or object of the triple is returned
-            default: 'object'; returning the subject instead can be useful, e.g., for identifiers
+            if 'subject': return the subject (effectively a no-op), useful for extracting identifiers or urls
+            
+            if 'object': return value(s) from objects occurring in triples with the current subject / predicate combination
         multiple: 
-            if `True`, return a list of all nodes for which the query returns a result,
-            if `False`, return the first node matching a query
+            if `True`: return a list of all nodes for which the query returns a result,
+            
+            if `False`: return the first node matching a query
         is_collection:
             specify whether the data of interest is a collection, i.e., sequential data
-            this is specified by the predicates `rdf:first` and `rdf:rest`, see https://rdflib.readthedocs.io/en/stable/_modules/rdflib/collection.html
+            a collection is indicated by the predicates `rdf:first` and `rdf:rest`, see [rdflib documentation](https://rdflib.readthedocs.io/en/stable/_modules/rdflib/collection.html)
 
     '''
 
@@ -619,30 +622,34 @@ class RDF(Extractor):
 
     def _apply(self, graph: Graph = None, subject: BNode = None, *nargs, **kwargs) -> Union[str, List[str]]:
         ''' apply a query to the RDFReader's graph, with one subject resulting from the `document_subjects` function
+        
         Parameters:
             graph: a graph in which to query (set on RDFReader)
             subject: the subject with which to query
+        
         Returns:
             a string or list of strings
         '''
         if self.node_type == 'subject':
-            return self.get_node_value(subject)
+            return self._get_node_value(subject)
         if self.is_collection:
             collection = Collection(graph, subject)
-            return [self.get_node_value(node) for node in list(collection)]
+            return [self._get_node_value(node) for node in list(collection)]
         nodes = self._select(graph, subject, self.predicates)
         if self.multiple:
-            return [self.get_node_value(node) for node in nodes]
-        return self.get_node_value(nodes[0])
+            return [self._get_node_value(node) for node in nodes]
+        return self._get_node_value(nodes[0])
 
     def _select(self, graph, subject, predicates: Iterable[URIRef]) -> List[Union[Literal, URIRef, BNode]]:
         ''' search in a graph with predicates
             if more than one predicate is passed, this is a recursive query:
             the first search result of the query is used as a subject in the next query
+            
             Parameters:
                 subject: the subject with which to query
                 graph: the graph to search
                 predicates: a list of predicates with which to query
+            
             Returns:
                 a list of nodes matching the query
         '''
@@ -652,7 +659,7 @@ class RDF(Extractor):
         else:
             return nodes
 
-    def get_node_value(self, node):
+    def _get_node_value(self, node):
         ''' return a string value extracted from the node '''
         if type(node) == Literal:
             return node.value
