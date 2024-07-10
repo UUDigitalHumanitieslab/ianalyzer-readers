@@ -90,7 +90,7 @@ def create_test_data():
                            RDF.rest, URIRef(next_id))
             graph.add(rest_triple)
 
-        graph.remove((rest_triple))
+        graph.remove(rest_triple)
         graph.add((URIRef(f'{ns_character}/HAMLET'),
                    URIRef(ns_opacity), Literal(1.0)))
         graph.add((URIRef(f'{ns_character}/GHOST'),

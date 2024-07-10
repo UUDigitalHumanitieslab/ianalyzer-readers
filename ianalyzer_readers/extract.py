@@ -657,6 +657,6 @@ class RDF(Extractor):
         if type(node) == Literal:
             return node.value
         elif type(node) == URIRef:
-            return split(node)[-1]
+            return str(node).split('/')[-1]
         else:
             return node

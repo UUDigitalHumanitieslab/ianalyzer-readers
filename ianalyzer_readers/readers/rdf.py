@@ -1,6 +1,6 @@
-from typing import Iterable
+from typing import Iterable, Union
 
-from rdflib import BNode, Graph
+from rdflib import BNode, Graph, URIRef
 
 from .core import Reader, Document, Source
 
@@ -34,6 +34,7 @@ class RDFReader(Reader):
     def document_subjects(self, graph: Graph) -> list:
         ''' override this function such that each subject can be used to
         retrieve a separate document in the resulting index
+        
         Parameters:
             graph: the graph to parse
         Returns:
@@ -41,5 +42,5 @@ class RDFReader(Reader):
         '''
         return list(graph.subjects())
 
-    def _document_from_subject(self, graph: Graph, subject: BNode) -> dict:
+    def _document_from_subject(self, graph: Graph, subject: Union[BNode, URIRef]) -> dict:
         return {field.name: field.extractor.apply(graph=graph, subject=subject) for field in self.fields}

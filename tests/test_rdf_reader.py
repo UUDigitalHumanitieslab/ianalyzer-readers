@@ -55,5 +55,6 @@ def test_rdf_document_content():
     reader = TestRDFReader()
     docs = reader.documents()
     for doc, target in zip(docs, target_documents):
+        assert len(target.keys()) == len(doc.keys())
         for key in target.keys():
             assert doc.get(key) == target.get(key)
