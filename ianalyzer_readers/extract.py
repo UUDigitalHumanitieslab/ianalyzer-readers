@@ -6,7 +6,6 @@ Some extractors are intended to work with specific `Reader` classes, while other
 are generic.
 '''
 
-from os.path import split
 import re
 import logging
 import traceback
@@ -598,7 +597,7 @@ class RDF(Extractor):
 
     Parameters:
         predicates: 
-            an iteratble of predicates (i.e., the middle part of a RDF triple) with which to query for objects
+            an iterable of predicates (i.e., the middle part of a RDF triple) with which to query for objects
         node_type:
             if 'subject': return the subject (effectively a no-op), useful for extracting identifiers or urls
             

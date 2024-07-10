@@ -9,6 +9,7 @@ from typing import Iterable, Union
 from rdflib import BNode, Graph, Literal, URIRef
 
 from .core import Reader, Document, Source
+import extract
 
 
 class RDFReader(Reader):
@@ -30,12 +31,25 @@ class RDFReader(Reader):
                 where the keys are names of this Reader's `fields`, and the values
                 are based on the extractor of each field.
         '''
-        filename = source
+        self._reject_extractors(extract.CSV, extract.XML)
+        
+        metadata = None
+        if type(source) == tuple:
+            filename = source[0]
+            metadata = source[1]
+        elif type(source) == bytes:
+            raise Exception('The current reader cannot handle sources of bytes type, provide a file path as string instead')
+        else:
+            filename = source
         g = Graph()
         g.parse(filename)
         document_subjects = self.document_subjects(g)
         for subject in document_subjects:
-            yield self._document_from_subject(g, subject)
+            content = self._document_from_subject(g, subject)
+            if metadata:
+                yield content, metadata
+            else:
+                yield content
 
     def document_subjects(self, graph: Graph) -> Iterable[Union[BNode, Literal, URIRef]]:
         ''' Override this function to return all subjects (i.e., first part of RDF triple) 
