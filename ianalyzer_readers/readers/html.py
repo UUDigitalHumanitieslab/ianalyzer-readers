@@ -22,8 +22,7 @@ class HTMLReader(XMLReader):
     It is based on the XMLReader and supports the same options (`tag_toplevel` and
     `tag_entry`).
 
-    In addition to generic extractor classes, this reader supports the `XML` and
-    `FilterAttribute` extractors.
+    In addition to generic extractor classes, this reader supports the `XML` extractor.
     '''
 
     def source2dicts(self, source: Source) -> Iterable[Document]:
@@ -55,12 +54,11 @@ class HTMLReader(XMLReader):
         tag0 = self.tag_toplevel
         tag = self.tag_entry
 
-        bowl = soup.find(tag0) if tag0 else soup
+        bowl = tag0.find_next_in_soup(soup) if tag0 else soup
 
-        # if there is a entry level tag, with html this is not always the case
+        # if there is a entry level tag; with html this is not always the case
         if bowl and tag:
-            # Note that this is non-recursive: will only find direct descendants of the top-level tag
-            for i, spoon in enumerate(bowl.find_all(tag)):
+            for i, spoon in enumerate(tag.find_in_soup(soup)):
                 # yield
                 yield {
                     field.name: field.extractor.apply(

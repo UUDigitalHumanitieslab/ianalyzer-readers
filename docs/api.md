@@ -41,3 +41,9 @@ __Module:__ `ianalyzer_readers.readers.rdf`
 __Module:__ `ianalyzer_readers.extract`
 
 ::: ianalyzer_readers.extract
+
+## XML tags
+
+__Module:__ `ianalyzer_readers.xml_tag`
+
+::: ianalyzer_readers.xml_tag
