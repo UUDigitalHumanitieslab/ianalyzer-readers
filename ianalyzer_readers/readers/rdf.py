@@ -9,7 +9,7 @@ from typing import Iterable, Union
 from rdflib import BNode, Graph, Literal, URIRef
 
 from .core import Reader, Document, Source
-import extract
+import ianalyzer_readers.extract as extract
 
 
 class RDFReader(Reader):

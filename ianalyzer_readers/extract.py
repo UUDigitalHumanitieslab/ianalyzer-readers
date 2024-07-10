@@ -18,7 +18,7 @@ from rdflib.collection import Collection
 
 logger = logging.getLogger()
 
-from xml_tag import TagSpecification, resolve_tag_specification
+from ianalyzer_readers.xml_tag import TagSpecification, resolve_tag_specification
 
 
 class Extractor(object):
