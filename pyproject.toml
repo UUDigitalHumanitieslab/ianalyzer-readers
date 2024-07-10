@@ -16,6 +16,7 @@ dependencies = [
   "beautifulsoup4",
   "lxml",
   "openpyxl",
+  "rdflib",
 ]
 
 description = "Utilities for extracting XML, HTML, CSV and XLSX data with a common interface"

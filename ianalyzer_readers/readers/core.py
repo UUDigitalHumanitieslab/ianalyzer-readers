@@ -8,7 +8,6 @@ The module defines two classes, `Field` and `Reader`.
 '''
 
 from .. import extract
-from datetime import datetime
 from typing import List, Iterable, Dict, Any, Union, Tuple
 import logging
 
