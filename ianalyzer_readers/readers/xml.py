@@ -198,4 +198,9 @@ class XMLReader(Reader):
         '''
         Parses content of a xml file
         '''
-        return bs4.BeautifulSoup(data, 'lxml-xml')
+        if isinstance(data, str):
+            return bs4.BeautifulSoup(data, 'lxml-xml')
+        elif isinstance(data, bytes):
+            return bs4.BeautifulSoup(data.decode('utf-8'), 'lxml-xml')
+        else:
+            logger.info('Could not read {}'.format(data))
