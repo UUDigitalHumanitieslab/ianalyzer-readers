@@ -150,24 +150,21 @@ class Reader(object):
 
     def documents(self, sources:Iterable[Source] = None) -> Iterable[Document]:
         '''
-        Returns an iterable of extracted documents from source files.
+        Returns a generator of extracted documents from source files.
 
         Parameters:
             sources: an iterable of paths to source files. If omitted, the reader
                 class will use the value of `self.sources()` instead.
 
-        Returns:
-            an iterable of document dictionaries. Each of these is a dictionary,
+        Yields:
+            a document dictionary at a time. Each of these is a dictionary,
                 where the keys are names of this Reader's `fields`, and the values
                 are based on the extractor of each field.
         '''
         sources = sources or self.sources()
-        return (document
-                for source in sources
-                for document in self.source2dicts(
-                    source
-                )
-                )
+        for source in sources:
+            for document in self.source2dicts(source):
+                yield document
 
     def _reject_extractors(self, *inapplicable_extractors: extract.Extractor):
         '''
