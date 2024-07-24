@@ -28,12 +28,7 @@ class TestRDFReader(RDFReader):
     def document_subjects(self, graph: Graph):
         ''' get all subjects with a `hasSpeaker` predicate '''
         subjects = sorted(list(graph.subjects(URIRef(ns_speaker))))
-        return subjects
-
-    def sources(self, **kwargs):
-        for filename in glob(f'{self.data_directory}/*.ttl'):
-            full_path = os.path.join(self.data_directory, filename)
-            yield full_path
+        return subjects     
 
     identifier = Field(
         'id',
@@ -69,11 +64,11 @@ class TestRDFReader(RDFReader):
 def create_test_data():
     ''' Use the example.csv file to write a document in turtle format '''
     graph = Graph()
-    with open('./tests/csv_example/example.csv', 'r') as f:
+    with open('./tests/csv/data/Hamlet.csv', 'r') as f:
         reader = csv.DictReader(f)
         character = ''
         for index, row in enumerate(reader):
-            identifier = f'{ns_line_id}/hamlet-actI-scene5-{index}'
+            identifier = f'{ns_line_id}/hamlet-actI-scene5-{str(index).zfill(2)}'
             if character != row['character']:
                 character = row['character']
                 graph.add((URIRef(identifier),
@@ -85,15 +80,17 @@ def create_test_data():
             graph.add((URIRef(identifier),
                        RDF.first, Literal(row['line'])))
 
-            next_id = f'{ns_line_id}/hamlet-actI-scene5-{index+1}'
+            next_id = f'{ns_line_id}/hamlet-actI-scene5-{str(index+1).zfill(2)}'
             rest_triple = (URIRef(identifier),
                            RDF.rest, URIRef(next_id))
             graph.add(rest_triple)
 
         graph.remove(rest_triple)
+        graph.serialize(destination='./tests/ttl_example/hamlet.ttl')
+
+        graph = Graph()
         graph.add((URIRef(f'{ns_character}/HAMLET'),
                    URIRef(ns_opacity), Literal(1.0)))
         graph.add((URIRef(f'{ns_character}/GHOST'),
                    URIRef(ns_opacity), Literal(0.3)))
-
-        graph.serialize(destination='./tests/ttl_example/hamlet.ttl')
+        graph.serialize(destination='./tests/ttl_example/opacity.ttl')

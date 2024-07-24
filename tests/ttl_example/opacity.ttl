@@ -1,0 +1,7 @@
+@prefix ns1: <http://example.org/vision/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<http://example.org/shakespeare/character/GHOST> ns1:hasOpacity 3e-01 .
+
+<http://example.org/shakespeare/character/HAMLET> ns1:hasOpacity 1e+00 .
+
