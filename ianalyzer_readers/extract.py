@@ -528,12 +528,12 @@ class RDF(Extractor):
         Returns:
             a string or list of strings
         '''
-        if self.node_type == 'subject':
-            return self._get_node_value(subject)
         if self.is_collection:
             collection = Collection(graph, subject)
             return [self._get_node_value(node) for node in list(collection)]
         nodes = self._select(graph, subject, self.predicates)
+        if len(nodes) == 0:
+            return None
         if self.multiple:
             return [self._get_node_value(node) for node in nodes]
         return self._get_node_value(nodes[0])
@@ -551,6 +551,8 @@ class RDF(Extractor):
             Returns:
                 a list of nodes matching the query
         '''
+        if not predicates[0]:
+            return [subject]
         nodes = list(graph.objects(subject, predicates[0]))
         if len(predicates) > 1:
             return self._select(graph, nodes[0], predicates[1:])
