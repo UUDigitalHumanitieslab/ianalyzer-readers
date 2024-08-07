@@ -1,22 +1,29 @@
-from .rdf_reader import TestRDFReader
+import pytest
+
+from tests.rdf.rdf_reader import TestRDFReader
+from tests.rdf.rdf_euparl import ParliamentEurope
 
 target_documents = [
     {
+        'id': 'hamlet-actI-scene5-0',
         'character': 'HAMLET',
         'lines': ["Whither wilt thou lead me? Speak, I\'ll go no further."],
         'opacity': 1.0
     },
     {
+        'id': 'hamlet-actI-scene5-1',
         'character': 'GHOST',
         'lines': ["Mark me."],
         'opacity': 0.3
     },
     {
+        'id': 'hamlet-actI-scene5-2',
         'character': 'HAMLET',
         'lines': ["I will."],
         'opacity': 1.0
     },
     {
+        'id': 'hamlet-actI-scene5-3',
         'character': 'GHOST',
         'lines': [
             "My hour is almost come,",
@@ -26,11 +33,13 @@ target_documents = [
         'opacity': 0.3
     },
     {
+        'id': 'hamlet-actI-scene5-6',
         'character': 'HAMLET',
         'lines': ["Alas, poor ghost!"],
         'opacity': 1.0,
     },
     {
+        'id': 'hamlet-actI-scene5-7',
         'character': 'GHOST',
         'lines': [
             "Pity me not, but lend thy serious hearing",
@@ -39,11 +48,13 @@ target_documents = [
         'opacity': 0.3
     },
     {
+        'id': 'hamlet-actI-scene5-9',
         'character': 'HAMLET',
         'lines': ["Speak, I am bound to hear."],
         'opacity': 1.0
     },
 ]
+
 
 def test_rdf_number_documents():
     reader = TestRDFReader()

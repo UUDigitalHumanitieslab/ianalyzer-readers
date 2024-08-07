@@ -23,7 +23,7 @@ class TestRDFReader(RDFReader):
     Example XML reader for testing
     """
 
-    data_directory = os.path.join(here, 'ttl_example')
+    data_directory = os.path.join(here, 'data')
 
     def document_subjects(self, graph: Graph):
         ''' get all subjects with a `hasSpeaker` predicate '''
@@ -31,15 +31,12 @@ class TestRDFReader(RDFReader):
         return subjects
 
     def sources(self, **kwargs):
-        for filename in glob(f'{self.data_directory}/*.ttl'):
-            full_path = os.path.join(self.data_directory, filename)
-            yield full_path
+        yield os.path.join(self.data_directory, 'hamlet.ttl')
 
     identifier = Field(
         'id',
         RDFExtractor(
-            URIRef(ns_line_id),
-            node_type='subject'
+            None
         )
     )
     character = Field(
@@ -63,7 +60,7 @@ class TestRDFReader(RDFReader):
         )
     )
 
-    fields = [character, lines, character_opacity]
+    fields = [identifier, character, lines, character_opacity]
 
 
 def create_test_data():
