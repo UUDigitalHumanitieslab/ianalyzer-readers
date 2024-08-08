@@ -44,7 +44,7 @@ class RDFReader(Reader):
             raise Exception('The current reader cannot handle sources of bytes type, provide a file path as string instead')
         else:
             filename = source
-        logger.info("parsing f'{filename}")
+        logger.info(f"parsing {filename}")
         g = Graph()
         g.parse(filename)
         document_subjects = self.document_subjects(g)
@@ -73,4 +73,14 @@ class RDFReader(Reader):
 
 
 def get_uri_value(node: URIRef) -> str:
+    ''' a utility function to extract the last part of a uri
+    For instance, if the input is URIRef('https://purl.org/mynamespace/ernie'),
+    the function will return 'ernie'
+
+    Parameters:
+        node: an URIRef input node
+    
+    Returns:
+        a string with the last element of the uri
+       '''
     return node.n3().strip('<>').split('/')[-1]
