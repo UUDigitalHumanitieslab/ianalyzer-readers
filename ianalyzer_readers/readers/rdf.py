@@ -4,12 +4,15 @@ This module defines a Resource Description Framework (RDF) reader.
 Extraction is based on the [rdflib library](https://rdflib.readthedocs.io/en/stable/index.html).
 '''
 
+import logging
 from typing import Iterable, Union
 
 from rdflib import BNode, Graph, Literal, URIRef
 
 from .core import Reader, Document, Source
 import ianalyzer_readers.extract as extract
+
+logger = logging.getLogger()
 
 
 class RDFReader(Reader):
@@ -41,6 +44,7 @@ class RDFReader(Reader):
             raise Exception('The current reader cannot handle sources of bytes type, provide a file path as string instead')
         else:
             filename = source
+        logger.info("parsing f'{filename}")
         g = Graph()
         g.parse(filename)
         document_subjects = self.document_subjects(g)
