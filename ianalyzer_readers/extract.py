@@ -561,9 +561,7 @@ class RDF(Extractor):
 
     def _get_node_value(self, node):
         ''' return a string value extracted from the node '''
-        if type(node) == Literal:
+        try:
             return node.value
-        elif type(node) == URIRef:
-            return str(node).split('/')[-1]
-        else:
+        except:
             return node
