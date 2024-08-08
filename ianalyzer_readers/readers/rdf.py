@@ -12,7 +12,7 @@ from rdflib import BNode, Graph, Literal, URIRef
 from .core import Reader, Document, Source
 import ianalyzer_readers.extract as extract
 
-logger = logging.getLogger()
+logger = logging.getLogger('ianalyzer-readers')
 
 
 class RDFReader(Reader):
