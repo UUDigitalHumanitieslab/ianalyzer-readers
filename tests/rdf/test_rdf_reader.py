@@ -1,7 +1,6 @@
 import pytest
 
 from tests.rdf.rdf_reader import TestRDFReader
-from tests.rdf.rdf_euparl import ParliamentEurope
 
 target_documents = [
     {

@@ -70,3 +70,7 @@ class RDFReader(Reader):
 
     def _document_from_subject(self, graph: Graph, subject: Union[BNode, Literal, URIRef]) -> dict:
         return {field.name: field.extractor.apply(graph=graph, subject=subject) for field in self.fields}
+
+
+def get_uri_value(node: URIRef) -> str:
+    return node.n3().strip('<>').split('/')[-1]

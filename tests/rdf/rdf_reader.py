@@ -5,7 +5,7 @@ from glob import glob
 from rdflib import Graph, URIRef, Literal
 from rdflib.namespace import RDF
 
-from ianalyzer_readers.readers.rdf import RDFReader
+from ianalyzer_readers.readers.rdf import get_uri_value, RDFReader
 from ianalyzer_readers.readers.core import Field
 from ianalyzer_readers.extract import RDF as RDFExtractor
 
@@ -36,13 +36,15 @@ class TestRDFReader(RDFReader):
     identifier = Field(
         'id',
         RDFExtractor(
-            None
+            None,
+            transform=get_uri_value
         )
     )
     character = Field(
         'character',
         RDFExtractor(
-            URIRef(ns_speaker)
+            URIRef(ns_speaker),
+            transform=get_uri_value
         )
     )
     lines = Field(
