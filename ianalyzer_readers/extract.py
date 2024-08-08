@@ -497,13 +497,9 @@ class RDF(Extractor):
     Parameters:
         predicates: 
             an iterable of predicates (i.e., the middle part of a RDF triple) with which to query for objects
-        node_type:
-            if 'subject': return the subject (effectively a no-op), useful for extracting identifiers or urls
-            
-            if 'object': return value(s) from objects occurring in triples with the current subject / predicate combination
+            when passing `None` as a predicate, the current subject will be returned instead
         multiple: 
-            if `True`: return a list of all nodes for which the query returns a result,
-            
+            if `True`: return a list of all nodes for which the query returns a result,       
             if `False`: return the first node matching a query
         is_collection:
             specify whether the data of interest is a collection, i.e., sequential data
@@ -511,9 +507,8 @@ class RDF(Extractor):
 
     '''
 
-    def __init__(self, *predicates: Iterable[URIRef], node_type: str = 'object', multiple: bool = False, is_collection: bool = False, **kwargs):
+    def __init__(self, *predicates: Iterable[Union[URIRef, None]], multiple: bool = False, is_collection: bool = False, **kwargs):
         self.predicates = predicates
-        self.node_type = node_type
         self.multiple = multiple
         self.is_collection = is_collection
         super().__init__(**kwargs)
