@@ -40,25 +40,17 @@ class RDFReader(Reader):
         '''
         self._reject_extractors(extract.CSV, extract.XML)
         
-        metadata = None
-        if type(source) == tuple:
-            filename = source[0]
-            metadata = source[1]
-        elif type(source) == bytes:
+        if type(source) == bytes:
             raise Exception('The current reader cannot handle sources of bytes type, provide a file path as string instead')
-        else:
-            filename = source
+        (filename, metadata) = source
+
         logger.info(f"parsing {filename}")
         g = Graph()
         g.parse(filename)
         document_subjects = self.document_subjects(g)
         for subject in document_subjects:
-            content = self._document_from_subject(g, subject)
-            if metadata:
-                yield content, metadata
-            else:
-                yield content
-
+            yield self._document_from_subject(g, subject, metadata)
+            
     def document_subjects(self, graph: Graph) -> Iterable[Union[BNode, Literal, URIRef]]:
         ''' Override this function to return all subjects (i.e., first part of RDF triple) 
         with which to search for data in the RDF graph.
@@ -72,8 +64,8 @@ class RDFReader(Reader):
         '''
         return graph.subjects()
 
-    def _document_from_subject(self, graph: Graph, subject: Union[BNode, Literal, URIRef]) -> dict:
-        return {field.name: field.extractor.apply(graph=graph, subject=subject) for field in self.fields}
+    def _document_from_subject(self, graph: Graph, subject: Union[BNode, Literal, URIRef], metadata: dict) -> dict:
+        return {field.name: field.extractor.apply(graph=graph, subject=subject, metadata=metadata) for field in self.fields}
 
 
 def get_uri_value(node: URIRef) -> str:
