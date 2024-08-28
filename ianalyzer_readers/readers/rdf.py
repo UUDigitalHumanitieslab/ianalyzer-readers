@@ -38,7 +38,11 @@ class RDFReader(Reader):
         
         if type(source) == bytes:
             raise Exception('The current reader cannot handle sources of bytes type, provide a file path as string instead')
-        (filename, metadata) = source
+        try:
+            (filename, metadata) = source
+        except ValueError:
+            filename = source
+            metadata = None
 
         logger.info(f"parsing {filename}")
         g = self.parse_source(filename)
