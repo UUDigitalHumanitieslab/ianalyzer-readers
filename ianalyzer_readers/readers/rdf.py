@@ -20,10 +20,6 @@ class RDFReader(Reader):
     A base class for Readers of Resource Description Framework files.
     These could be in Turtle, JSON-LD, RDFXML or other formats,
     see [rdflib parsers](https://rdflib.readthedocs.io/en/stable/plugin_parsers.html).
-
-    Note that this reader expects all relevant information to be in one file.
-    If you have RDF data spread over multiple files,
-    you can refer to the `combine_rdf_files` utility funciton to combine them.
     '''
 
     def source2dicts(self, source: Source) -> Iterable[Document]:
@@ -45,11 +41,25 @@ class RDFReader(Reader):
         (filename, metadata) = source
 
         logger.info(f"parsing {filename}")
-        g = Graph()
-        g.parse(filename)
+        g = self.parse_source(filename)
+        
         document_subjects = self.document_subjects(g)
         for subject in document_subjects:
             yield self._document_from_subject(g, subject, metadata)
+    
+    def parse_graph_from_filename(self, filename: str) -> Graph:
+        ''' Read a RDF file as indicated by source, return a graph 
+        Override this function to parse multiple source files into one graph
+
+        Parameters:
+            filename: the name of the file to be parsed
+        
+        Returns:
+            rdflib Graph object
+        '''
+        g = Graph()
+        g.parse(filename)
+        return g
             
     def document_subjects(self, graph: Graph) -> Iterable[Union[BNode, Literal, URIRef]]:
         ''' Override this function to return all subjects (i.e., first part of RDF triple) 
@@ -80,24 +90,3 @@ def get_uri_value(node: URIRef) -> str:
         a string with the last element of the uri
        '''
     return node.n3().strip('<>').split('/')[-1]
-
-def combine_rdf_files(files: list[str], output_file: str):
-    ''' A utility function to combine multiple rdf files into one
-    
-    Parameters:
-        files: a list of filepaths, as for instance returned by the glob module
-        output_file: the filename of the combined file
-    
-    Usage:
-    ```python
-    from glob import glob
-    from ianalyer_readers.readers.rdf import combine_rdf_files
-
-    files = glob('my/directory/*.ttl')
-    combine_rdf_files(files, 'my/directory/output.rdf')
-    ```
-    '''
-    graph = Graph()
-    for rdf_file in files:
-        graph.parse(rdf_file)
-    graph.serialize(destination=output_file)
