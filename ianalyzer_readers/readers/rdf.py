@@ -45,7 +45,7 @@ class RDFReader(Reader):
             metadata = None
 
         logger.info(f"parsing {filename}")
-        g = self.parse_source(filename)
+        g = self.parse_graph_from_filename(filename)
         
         document_subjects = self.document_subjects(g)
         for subject in document_subjects:
