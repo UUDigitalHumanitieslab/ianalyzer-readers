@@ -467,6 +467,7 @@ class CSV(Extractor):
         if value and value not in self.convert_to_none:
             return value
 
+
 class ExternalFile(Extractor):
     '''
     Free for all external file extractor that provides a stream to `stream_handler`
@@ -489,6 +490,21 @@ class ExternalFile(Extractor):
         Extract `associated_file` from metadata and call `self.stream_handler` with file stream.
         '''
         return self.stream_handler(open(metadata['associated_file'], 'r'))
+
+
+class JSON(Extractor):
+    ''' An extractor to extract data from JSON
+    This extractor assumes that each source is a flat dictionary
+    
+    Parameters:
+        key: the key with which to retrieve a field from the source
+    '''
+    def __init__(self, key: str, *nargs, **kwargs):
+        self.key = key
+        super().__init__(*nargs, **kwargs)
+
+    def _apply(self, data, **kwargs):
+        return data.get(self.key)
 
 
 class RDF(Extractor):
