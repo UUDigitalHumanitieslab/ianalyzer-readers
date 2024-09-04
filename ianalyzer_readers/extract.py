@@ -130,9 +130,9 @@ class Combined(Extractor):
         self.extractors = list(extractors)
         super().__init__(**kwargs)
 
-    def _apply(self, metadata: Dict, *nargs, **kwargs):
+    def _apply(self, *nargs, **kwargs):
         return tuple(
-            extractor.apply(metadata=metadata, *nargs, **kwargs) for extractor in self.extractors
+            extractor.apply(*nargs, **kwargs) for extractor in self.extractors
         )
 
 
