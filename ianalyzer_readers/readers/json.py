@@ -1,7 +1,8 @@
 import json
 from os.path import isfile
-import requests
 from typing import Iterable
+
+from requests import Response
 
 from .core import Reader, Document, Source
 import ianalyzer_readers.extract as extract
@@ -36,10 +37,11 @@ class JSONReader(Reader):
         yield field_dict
 
     def _get_json_data(self, source: Source) -> dict:
-        if type(source) == bytes:
-            return source
-        elif isfile(source):
+        if isfile(source):
             return json.load(source)
+        elif type(source) == Response:
+            return source.json()
+        elif type(source) == bytes:
+            return json.loads(source)
         else:
-            response = requests.get(source)
-            return response.json()
+            raise Exception("Unexpected source type for JSON Reader")
