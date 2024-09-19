@@ -492,28 +492,29 @@ class ExternalFile(Extractor):
 
 
 class RDF(Extractor):
-    ''' An extractor to extract data from RDF triples
+    """An extractor to extract data from RDF triples
 
     Parameters:
-        predicates: 
+        predicates:
             an iterable of predicates (i.e., the middle part of a RDF triple) with which to query for objects
-        node_type:
-            if 'subject': return the subject (effectively a no-op), useful for extracting identifiers or urls
-            
-            if 'object': return value(s) from objects occurring in triples with the current subject / predicate combination
-        multiple: 
+            when passing no predicate, the current subject will be returned
+        multiple:
             if `True`: return a list of all nodes for which the query returns a result,
-            
             if `False`: return the first node matching a query
         is_collection:
             specify whether the data of interest is a collection, i.e., sequential data
             a collection is indicated by the predicates `rdf:first` and `rdf:rest`, see [rdflib documentation](https://rdflib.readthedocs.io/en/stable/_modules/rdflib/collection.html)
 
-    '''
+    """
 
-    def __init__(self, *predicates: Iterable[URIRef], node_type: str = 'object', multiple: bool = False, is_collection: bool = False, **kwargs):
+    def __init__(
+        self,
+        *predicates: Iterable[URIRef],
+        multiple: bool = False,
+        is_collection: bool = False,
+        **kwargs,
+    ):
         self.predicates = predicates
-        self.node_type = node_type
         self.multiple = multiple
         self.is_collection = is_collection
         super().__init__(**kwargs)
@@ -528,12 +529,12 @@ class RDF(Extractor):
         Returns:
             a string or list of strings
         '''
-        if self.node_type == 'subject':
-            return self._get_node_value(subject)
         if self.is_collection:
             collection = Collection(graph, subject)
             return [self._get_node_value(node) for node in list(collection)]
         nodes = self._select(graph, subject, self.predicates)
+        if len(nodes) == 0:
+            return None
         if self.multiple:
             return [self._get_node_value(node) for node in nodes]
         return self._get_node_value(nodes[0])
@@ -551,6 +552,8 @@ class RDF(Extractor):
             Returns:
                 a list of nodes matching the query
         '''
+        if not predicates:
+            return [subject]
         nodes = list(graph.objects(subject, predicates[0]))
         if len(predicates) > 1:
             return self._select(graph, nodes[0], predicates[1:])
@@ -559,9 +562,7 @@ class RDF(Extractor):
 
     def _get_node_value(self, node):
         ''' return a string value extracted from the node '''
-        if type(node) == Literal:
+        try:
             return node.value
-        elif type(node) == URIRef:
-            return str(node).split('/')[-1]
-        else:
+        except:
             return node

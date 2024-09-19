@@ -11,7 +11,8 @@ from .. import extract
 from typing import List, Iterable, Dict, Any, Union, Tuple
 import logging
 
-logger = logging.getLogger()
+logging.basicConfig(level=logging.WARNING)
+logging.getLogger('ianalyzer-readers').setLevel(logging.DEBUG)
 
 Source = Union[str, Tuple[str, Dict], bytes]
 '''
