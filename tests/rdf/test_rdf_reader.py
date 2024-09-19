@@ -1,6 +1,7 @@
 import pytest
+from rdflib import URIRef
 
-from tests.rdf.rdf_reader import TestRDFReader
+from tests.rdf.rdf_reader import TestRDFReader, get_uri_value
 
 target_documents = [
     {
@@ -68,3 +69,10 @@ def test_rdf_document_content():
         assert len(target.keys()) == len(doc.keys())
         for key in target.keys():
             assert doc.get(key) == target.get(key)
+
+
+def test_get_node_value():
+    input = URIRef("https://purl.org/mynamespace#ernie")
+    assert get_uri_value(input) == "ernie"
+    input = URIRef("https://purl.org/mynamespace/ernie")
+    assert get_uri_value(input) == "ernie"

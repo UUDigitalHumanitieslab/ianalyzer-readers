@@ -83,14 +83,15 @@ class RDFReader(Reader):
 
 
 def get_uri_value(node: URIRef) -> str:
-    ''' a utility function to extract the last part of a uri
+    """a utility function to extract the last part of a uri
     For instance, if the input is URIRef('https://purl.org/mynamespace/ernie'),
+    or URIRef('https://purl.org/mynamespace#ernie')
     the function will return 'ernie'
 
     Parameters:
         node: an URIRef input node
-    
+
     Returns:
         a string with the last element of the uri
-       '''
-    return node.n3().strip('<>').split('/')[-1]
+    """
+    return node.fragment or node.defrag().split("/")[-1]
