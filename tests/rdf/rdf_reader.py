@@ -1,6 +1,5 @@
 import csv
 import os
-from glob import glob
 
 from rdflib import Graph, URIRef, Literal
 from rdflib.namespace import RDF
@@ -33,13 +32,7 @@ class TestRDFReader(RDFReader):
     def sources(self, **kwargs):
         yield os.path.join(self.data_directory, 'hamlet.ttl')
 
-    identifier = Field(
-        'id',
-        RDFExtractor(
-            None,
-            transform=get_uri_value
-        )
-    )
+    identifier = Field("id", RDFExtractor(transform=get_uri_value))
     character = Field(
         'character',
         RDFExtractor(

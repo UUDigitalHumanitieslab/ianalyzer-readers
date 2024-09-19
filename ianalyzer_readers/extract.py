@@ -492,22 +492,28 @@ class ExternalFile(Extractor):
 
 
 class RDF(Extractor):
-    ''' An extractor to extract data from RDF triples
+    """An extractor to extract data from RDF triples
 
     Parameters:
-        predicates: 
+        predicates:
             an iterable of predicates (i.e., the middle part of a RDF triple) with which to query for objects
-            when passing `None` as a predicate, the current subject will be returned instead
-        multiple: 
-            if `True`: return a list of all nodes for which the query returns a result,       
+            when passing no predicate, the current subject will be returned
+        multiple:
+            if `True`: return a list of all nodes for which the query returns a result,
             if `False`: return the first node matching a query
         is_collection:
             specify whether the data of interest is a collection, i.e., sequential data
             a collection is indicated by the predicates `rdf:first` and `rdf:rest`, see [rdflib documentation](https://rdflib.readthedocs.io/en/stable/_modules/rdflib/collection.html)
 
-    '''
+    """
 
-    def __init__(self, *predicates: Iterable[Union[URIRef, None]], multiple: bool = False, is_collection: bool = False, **kwargs):
+    def __init__(
+        self,
+        *predicates: Iterable[URIRef],
+        multiple: bool = False,
+        is_collection: bool = False,
+        **kwargs,
+    ):
         self.predicates = predicates
         self.multiple = multiple
         self.is_collection = is_collection
@@ -546,7 +552,7 @@ class RDF(Extractor):
             Returns:
                 a list of nodes matching the query
         '''
-        if not predicates[0]:
+        if not predicates:
             return [subject]
         nodes = list(graph.objects(subject, predicates[0]))
         if len(predicates) > 1:
