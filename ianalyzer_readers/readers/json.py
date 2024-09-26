@@ -38,7 +38,8 @@ class JSONReader(Reader):
 
     def _get_json_data(self, source: Source) -> dict:
         if isfile(source):
-            return json.load(source)
+            with open(source, "r") as f:
+                return json.load(f)
         elif type(source) == Response:
             return source.json()
         elif type(source) == bytes:

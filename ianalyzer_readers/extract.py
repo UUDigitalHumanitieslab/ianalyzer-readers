@@ -499,12 +499,18 @@ class JSON(Extractor):
     Parameters:
         key: the key with which to retrieve a field from the source
     '''
-    def __init__(self, key: str, *nargs, **kwargs):
-        self.key = key
-        super().__init__(*nargs, **kwargs)
+    def __init__(self, *keys: Iterable[str], **kwargs):
+        self.keys = list(keys)
+        super().__init__(**kwargs)
 
     def _apply(self, data, **kwargs):
-        return data.get(self.key)
+        while self.keys:
+            key = self.keys.pop(0)
+            try:
+                data = data.get(key)
+            except AttributeError:
+                data = data[0].get(key)
+        return data
 
 
 class RDF(Extractor):
