@@ -171,18 +171,25 @@ class Reader(object):
                 )
                 )
 
-    def export_csv(
-            self,
-            path: str,               
-            sources: Optional[Iterable[Source]] = None
-        ) -> None:
-            documents = self.documents(sources)
+    def export_csv(self, path: str, sources: Optional[Iterable[Source]] = None) -> None:
+        '''
+        Extracts documents from sources and saved them in a CSV file.
 
-            with open(path, 'w') as outfile:
-                writer = csv.DictWriter(outfile, self.fieldnames)
-                writer.writeheader()
-                for doc in documents:
-                    writer.writerow(doc)
+        This will write a CSV file in the provided `path`. This method has no return
+        value.
+
+        Parameters:
+            path: the path where the CSV file should be saved.
+            sources: an iterable of paths to source files. If omitted, the reader class
+                will use the value of `self.sources()` instead.
+        '''
+        documents = self.documents(sources)
+
+        with open(path, 'w') as outfile:
+            writer = csv.DictWriter(outfile, self.fieldnames)
+            writer.writeheader()
+            for doc in documents:
+                writer.writerow(doc)
 
 
     def _reject_extractors(self, *inapplicable_extractors: extract.Extractor):
