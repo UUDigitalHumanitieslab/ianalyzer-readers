@@ -8,8 +8,9 @@ The module defines two classes, `Field` and `Reader`.
 '''
 
 from .. import extract
-from typing import List, Iterable, Dict, Any, Union, Tuple
+from typing import List, Iterable, Dict, Any, Union, Tuple, Optional
 import logging
+import csv
 
 logging.basicConfig(level=logging.WARNING)
 logging.getLogger('ianalyzer-readers').setLevel(logging.DEBUG)
@@ -169,6 +170,20 @@ class Reader(object):
                     source
                 )
                 )
+
+    def export_csv(
+            self,
+            path: str,               
+            sources: Optional[Iterable[Source]] = None
+        ) -> None:
+            documents = self.documents(sources)
+
+            with open(path, 'w') as outfile:
+                writer = csv.DictWriter(outfile, self.fieldnames)
+                writer.writeheader()
+                for doc in documents:
+                    writer.writerow(doc)
+
 
     def _reject_extractors(self, *inapplicable_extractors: extract.Extractor):
         '''
