@@ -173,7 +173,7 @@ class Reader(object):
 
     def export_csv(self, path: str, sources: Optional[Iterable[Source]] = None) -> None:
         '''
-        Extracts documents from sources and saved them in a CSV file.
+        Extracts documents from sources and saves them in a CSV file.
 
         This will write a CSV file in the provided `path`. This method has no return
         value.
