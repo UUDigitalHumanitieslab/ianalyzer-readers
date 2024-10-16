@@ -178,8 +178,12 @@ class XMLReader(Reader):
             filename = None
             metadata = {}
         else:
-            filename = source[0]
-            soup = self._soup_from_xml(filename)
+            if isinstance(source[0], str):
+                filename = source[0]
+                soup = self._soup_from_xml(filename)
+            else:
+                filename = None
+                soup = self._soup_from_data(source[0])
             metadata = source[1] or None
         return filename, soup, metadata
 
