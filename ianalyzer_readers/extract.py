@@ -10,6 +10,7 @@ import re
 import logging
 import traceback
 from typing import Any, Dict, Callable, Union, List, Optional, Iterable
+import warnings
 
 import bs4
 import html
@@ -46,7 +47,7 @@ class Extractor(object):
         Test if the extractor is applicable to the given arguments and if so,
         try to extract the information.
         '''
-        if self.applicable is None or self.applicable(kwargs.get('metadata')):
+        if self._is_applicable(*nargs, **kwargs):
             result = self._apply(*nargs, **kwargs)
             try:
                 if self.transform:
@@ -73,6 +74,36 @@ class Extractor(object):
         raise NotImplementedError()
 
 
+    def _is_applicable(self, *nargs, **kwargs) -> bool:
+        '''
+        Checks whether the extractor is applicable, based on the condition passed as the
+        `applicable` parameter.
+        
+        If no condition is provided, this is always true. If the condition is an
+        Extractor, this checks whether the result is truthy.
+
+        If the condition is a callable, it will be called with the document metadata as
+        an argument. This option is deprecated; you can use the Metadata extractor to
+        replace it.
+
+        Raises:
+            TypeError: Raised if the applicable parameter is an unsupported type.
+        '''
+        if self.applicable is None:
+            return True
+        if isinstance(self.applicable, Extractor):
+            return bool(self.applicable.apply(*nargs, **kwargs))
+        if callable(self.applicable):
+            warnings.warn(
+                'Using a callable as "applicable" argument is deprecated; provide an '
+                'Extractor instead',
+                DeprecationWarning,
+            )
+            return self.applicable(kwargs.get('metadata'))
+        return TypeError(
+            f'Unsupported type for "applicable" parameter: {type(self.applicable)}'
+        )
+
 class Choice(Extractor):
     '''
     Use the first applicable extractor from a list of extractors.
@@ -89,8 +120,21 @@ class Choice(Extractor):
     This would extract `'foo'` if `some_condition` is met; otherwise,
     the extracted value will be `'bar'`.
 
-    Note the difference with `Backup`: `Choice` is based on _metadata_, rather than the
-    extracted value.
+    Note the difference with `Backup`: `Backup` will select the first truthy value from a
+    list of extractors, but `Choice` only checks the `applicable` condition. For example:
+
+        Choice(
+            CSV('foo', applicable=Metadata('bar')),
+            CSV('baz'),
+        )
+
+        Backup(
+            CSV('foo', applicable=Metadata('bar')),
+            CSV('baz'),
+        )
+
+    These extractors behave differently if the "bar" condition holds, but the "foo" field
+    is empty. `Backup` will try to extract the "baz" field, `Choice` will not.
 
     Parameters:
         *extractors: extractors to choose from. These should be listed in descending
@@ -102,10 +146,10 @@ class Choice(Extractor):
         self.extractors = list(extractors)
         super().__init__(**kwargs)
 
-    def _apply(self, metadata: Dict, *nargs, **kwargs):
+    def _apply(self, *nargs, **kwargs):
         for extractor in self.extractors:
-            if extractor.applicable is None or extractor.applicable(metadata):
-                return extractor.apply(metadata=metadata, *nargs, **kwargs)
+            if extractor._is_applicable(*nargs, **kwargs):
+                return extractor.apply(*nargs, **kwargs)
         return None
 
 
@@ -149,8 +193,8 @@ class Backup(Extractor):
     Since the first extractor returns `None`, the second extractor will be used, and the 
     extracted value would be `'foo'`.
 
-    Note the difference with `Choice`: `Backup` is based on the _extracted value_, rather
-    than metadata.
+    Note the difference with `Choice`: `Backup` is based on the _extracted value_,
+    `Choice` on the `applicable` parameter of each extractor.
 
     Parameters:
         *extractors: extractors to use. These should be listed in descending order of

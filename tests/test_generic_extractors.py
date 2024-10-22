@@ -1,3 +1,4 @@
+import pytest
 from ianalyzer_readers.extract import (
     Constant, Combined, Backup, Choice, Metadata, Pass, Order
 )
@@ -32,7 +33,7 @@ def test_choice_extractor():
     extractor = Choice(
         Constant(
             'first',
-            applicable=lambda metadata: metadata.get('check'),
+            applicable=Metadata('check'),
         ),
         Constant(
             'second'
@@ -71,3 +72,16 @@ def test_order_extractor():
     extractor = Order()
     output = extractor.apply(index=1)
     assert output == 1
+
+
+def test_extractor_applicable_extractor():
+    extractor = Constant('test', applicable=Metadata('testing'))
+    assert extractor.apply(metadata={'testing': True}) == 'test'
+    assert extractor.apply(metadata={'testing': False}) == None
+
+
+def test_extractor_applicable_callable():
+    extractor = Constant('test', applicable=lambda metadata: metadata['testing'])
+    with pytest.warns(DeprecationWarning):
+        assert extractor.apply(metadata={'testing': True}) == 'test'
+        assert extractor.apply(metadata={'testing': False}) == None
