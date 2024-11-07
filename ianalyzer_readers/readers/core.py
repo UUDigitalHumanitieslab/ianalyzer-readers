@@ -15,7 +15,7 @@ import csv
 logging.basicConfig(level=logging.WARNING)
 logging.getLogger('ianalyzer-readers').setLevel(logging.DEBUG)
 
-Source = Union[str, Tuple[str, Dict], bytes]
+Source = Union[str, Tuple[Union[str, bytes], Dict], bytes]
 '''
 Type definition for the source input to some Reader methods.
 

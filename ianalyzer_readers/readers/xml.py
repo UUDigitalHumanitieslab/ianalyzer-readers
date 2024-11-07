@@ -6,6 +6,7 @@ Extraction is based on BeautifulSoup.
 
 import bs4
 import logging
+from os.path import isfile
 from typing import Dict, Iterable, Tuple, List
 
 from .. import extract
@@ -178,8 +179,12 @@ class XMLReader(Reader):
             filename = None
             metadata = {}
         else:
-            filename = source[0]
-            soup = self._soup_from_xml(filename)
+            if isfile(source[0]):
+                filename = source[0]
+                soup = self._soup_from_xml(filename)
+            else:
+                filename = None
+                soup = self._soup_from_data(source[0])
             metadata = source[1] or None
         return filename, soup, metadata
 
