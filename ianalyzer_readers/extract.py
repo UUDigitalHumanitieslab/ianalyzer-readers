@@ -506,12 +506,9 @@ class JSON(Extractor):
     def _apply(self, data, **kwargs):
         while self.keys:
             key = self.keys.pop(0)
-            try:
-                data = data.get(key)
-            except AttributeError:
-                data = data[0].get(key)
-        return data
-
+            output = data.get(key)
+            self._apply(output)
+        return output
 
 class RDF(Extractor):
     ''' An extractor to extract data from RDF triples

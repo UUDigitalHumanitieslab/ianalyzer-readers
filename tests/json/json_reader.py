@@ -12,6 +12,7 @@ class JSONTestReader(JSONReader):
     """
 
     data_directory = os.path.join(os.path.dirname(__file__), "data")
+    document_path = ["SCENE", "SPEECH"]
 
     def sources(self, **kwargs):
         for filename in glob(f"{self.data_directory}/*.json"):
