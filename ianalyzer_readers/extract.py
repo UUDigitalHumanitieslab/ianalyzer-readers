@@ -29,18 +29,30 @@ class Extractor(object):
     An extractor contains a method that can be used to gather data for a field. 
 
     Parameters:
-        applicable: optional predicate that takes metadata and decides whether this
-            extractor is applicable. If left as `None`, the extractor is always
-            applicable.
-        transform: optional function to transform the postprocess the extracted value.
+        applicable: 
+            optional argument to check whether the extractor can be used. This should
+            be another extractor, which is applied first; the containing extractor
+            is only applied if the result is truthy. Any extractor can be used, as long as
+            it's supported by the Reader in which it's used. If left as `None`, this 
+            extractor is always applicable.
+        transform: optional function to transform or postprocess the extracted value.
     '''
 
     def __init__(self,
-                 applicable: Optional[Callable[[Dict], bool]] = None,
+                 applicable: Union['Extractor', Callable[[Dict], bool], None] = None,
                  transform: Optional[Callable] = None
                  ):
+
+        if callable(applicable):
+            warnings.warn(
+                'Using a callable as "applicable" argument is deprecated; provide an '
+                'Extractor instead',
+                DeprecationWarning,
+            )
+
         self.transform = transform
         self.applicable = applicable
+
 
     def apply(self, *nargs, **kwargs):
         '''
@@ -94,11 +106,6 @@ class Extractor(object):
         if isinstance(self.applicable, Extractor):
             return bool(self.applicable.apply(*nargs, **kwargs))
         if callable(self.applicable):
-            warnings.warn(
-                'Using a callable as "applicable" argument is deprecated; provide an '
-                'Extractor instead',
-                DeprecationWarning,
-            )
             return self.applicable(kwargs.get('metadata'))
         return TypeError(
             f'Unsupported type for "applicable" parameter: {type(self.applicable)}'

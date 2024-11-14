@@ -81,7 +81,7 @@ def test_extractor_applicable_extractor():
 
 
 def test_extractor_applicable_callable():
-    extractor = Constant('test', applicable=lambda metadata: metadata['testing'])
     with pytest.warns(DeprecationWarning):
-        assert extractor.apply(metadata={'testing': True}) == 'test'
-        assert extractor.apply(metadata={'testing': False}) == None
+        extractor = Constant('test', applicable=lambda metadata: metadata['testing'])
+    assert extractor.apply(metadata={'testing': True}) == 'test'
+    assert extractor.apply(metadata={'testing': False}) == None
