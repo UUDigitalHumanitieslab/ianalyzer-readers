@@ -1,7 +1,8 @@
 import json
 from os.path import isfile
-from typing import Iterable
+from typing import Iterable, Optional, Union
 
+from pandas import json_normalize
 from requests import Response
 
 from .core import Reader, Document, Source
@@ -11,11 +12,18 @@ class JSONReader(Reader):
     """
     A base class for Readers of JSON encoded data.
 
+    The reader can either be used on a collection of JSON files, in which each file represents a document,
+    or for a JSON file containing lists of documents.
+
+    If the attributes `record_path` and `meta` are passed, they are used as arguments to [pandas.json_normalize](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.json_normalize.html) to unnest the JSON data
+
     Attributes:
-        document_path (Iterable[str]): a keyword or list of keywords by which a list of documents can be extracted
+        record_path: a keyword or list of keywords by which a list of documents can be extracted from a large JSON file; do not define if the corpus is structured as one file per document
+        meta: a list of keywords, or list of lists of keywords, by which metadata for each document can be located
     """
 
-    document_path = []
+    record_path: Optional[list[str]] = None
+    meta: Optional[list[Union[str, list[str]]]] = None
 
     def source2dicts(self, source: Source, *nargs, **kwargs) -> Iterable[Document]:
         """
@@ -33,15 +41,24 @@ class JSONReader(Reader):
         else:
             metadata = None
             json_data = self._get_json_data(source)
-        data = self._parse_json_tree(json_data)
+
+        if self.record_path and self.meta:
+            documents = json_normalize(json_data, self.record_path, self.meta).to_dict(
+                'records'
+            )
+        else:
+            documents = list(json_data)
         self._reject_extractors(extract.XML, extract.CSV, extract.RDF)
 
-        field_dict = {
-            field.name: field.extractor.apply(data, metadata=metadata, *nargs, **kwargs)
-            for field in self.fields
-        }
+        for doc in documents:
+            field_dict = {
+                field.name: field.extractor.apply(
+                    doc, metadata=metadata, *nargs, **kwargs
+                )
+                for field in self.fields
+            }
 
-        yield field_dict
+            yield field_dict
 
     def _get_json_data(self, source: Source) -> dict:
         if isfile(source):
@@ -53,24 +70,3 @@ class JSONReader(Reader):
             return json.loads(source)
         else:
             raise Exception("Unexpected source type for JSON Reader")
-
-    def _parse_json_tree(self, data: dict, output: dict = {}) -> Iterable[dict]:
-        """Step through the dict recursively, collecting all data
-        Documents can be members of a list
-        """
-        while len(self.document_path):
-            document_key = self.document_path.pop(0)
-            data_keys = data.keys()
-            for data_key in data_keys:
-                if data_key != document_key:
-                    output[data_key] == data[data_key]
-            try:
-                path_content = data[document_key]
-            except KeyError:
-                raise Exception("path to identify documents is invalid")
-            if type(path_content) == list:
-                new_data = path_content.pop(0)
-                self._parse_json_tree(new_data, output)
-            else:
-                output[document_key] = path_content
-        return output
