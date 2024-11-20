@@ -8,17 +8,18 @@ The module defines two classes, `Field` and `Reader`.
 '''
 
 from .. import extract
-from typing import List, Iterable, Dict, Any, Union, Tuple
+from typing import List, Iterable, Dict, Any, Union, Tuple, Optional
 import logging
+import csv
 
 from requests import Response
 
-logger = logging.getLogger()
+logging.basicConfig(level=logging.WARNING)
+logger = logging.getLogger('ianalyzer-readers').setLevel(logging.DEBUG)
 
 SourceType = Union[str, Response, bytes]
 Source = Union[SourceType, Tuple[SourceType, Dict]]
-
-"""
+'''
 Type definition for the source input to some Reader methods.
 
 Sources are either:
@@ -28,7 +29,7 @@ Sources are either:
 - a requests.Response
 - a tuple of one of the above, and a dictionary with metadata
 
-"""
+'''
 
 Document = Dict[str, Any]
 '''
@@ -174,6 +175,27 @@ class Reader(object):
                     source
                 )
                 )
+
+    def export_csv(self, path: str, sources: Optional[Iterable[Source]] = None) -> None:
+        '''
+        Extracts documents from sources and saves them in a CSV file.
+
+        This will write a CSV file in the provided `path`. This method has no return
+        value.
+
+        Parameters:
+            path: the path where the CSV file should be saved.
+            sources: an iterable of paths to source files. If omitted, the reader class
+                will use the value of `self.sources()` instead.
+        '''
+        documents = self.documents(sources)
+
+        with open(path, 'w') as outfile:
+            writer = csv.DictWriter(outfile, self.fieldnames)
+            writer.writeheader()
+            for doc in documents:
+                writer.writerow(doc)
+
 
     def _reject_extractors(self, *inapplicable_extractors: extract.Extractor):
         '''

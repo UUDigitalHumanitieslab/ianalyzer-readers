@@ -4,12 +4,15 @@ This module defines a Resource Description Framework (RDF) reader.
 Extraction is based on the [rdflib library](https://rdflib.readthedocs.io/en/stable/index.html).
 '''
 
+import logging
 from typing import Iterable, Union
 
 from rdflib import BNode, Graph, Literal, URIRef
 
 from .core import Reader, Document, Source
 import ianalyzer_readers.extract as extract
+
+logger = logging.getLogger('ianalyzer-readers')
 
 
 class RDFReader(Reader):
@@ -33,24 +36,35 @@ class RDFReader(Reader):
         '''
         self._reject_extractors(extract.CSV, extract.XML)
         
-        metadata = None
-        if type(source) == tuple:
-            filename = source[0]
-            metadata = source[1]
-        elif type(source) == bytes:
+        if type(source) == bytes:
             raise Exception('The current reader cannot handle sources of bytes type, provide a file path as string instead')
-        else:
+        try:
+            (filename, metadata) = source
+        except ValueError:
             filename = source
-        g = Graph()
-        g.parse(filename)
+            metadata = None
+
+        logger.info(f"parsing {filename}")
+        g = self.parse_graph_from_filename(filename)
+        
         document_subjects = self.document_subjects(g)
         for subject in document_subjects:
-            content = self._document_from_subject(g, subject)
-            if metadata:
-                yield content, metadata
-            else:
-                yield content
+            yield self._document_from_subject(g, subject, metadata)
+    
+    def parse_graph_from_filename(self, filename: str) -> Graph:
+        ''' Read a RDF file as indicated by source, return a graph 
+        Override this function to parse multiple source files into one graph
 
+        Parameters:
+            filename: the name of the file to be parsed
+        
+        Returns:
+            rdflib Graph object
+        '''
+        g = Graph()
+        g.parse(filename)
+        return g
+            
     def document_subjects(self, graph: Graph) -> Iterable[Union[BNode, Literal, URIRef]]:
         ''' Override this function to return all subjects (i.e., first part of RDF triple) 
         with which to search for data in the RDF graph.
@@ -64,5 +78,20 @@ class RDFReader(Reader):
         '''
         return graph.subjects()
 
-    def _document_from_subject(self, graph: Graph, subject: Union[BNode, Literal, URIRef]) -> dict:
-        return {field.name: field.extractor.apply(graph=graph, subject=subject) for field in self.fields}
+    def _document_from_subject(self, graph: Graph, subject: Union[BNode, Literal, URIRef], metadata: dict) -> dict:
+        return {field.name: field.extractor.apply(graph=graph, subject=subject, metadata=metadata) for field in self.fields}
+
+
+def get_uri_value(node: URIRef) -> str:
+    """a utility function to extract the last part of a uri
+    For instance, if the input is URIRef('https://purl.org/mynamespace/ernie'),
+    or URIRef('https://purl.org/mynamespace#ernie')
+    the function will return 'ernie'
+
+    Parameters:
+        node: an URIRef input node
+
+    Returns:
+        a string with the last element of the uri
+    """
+    return node.fragment or node.defrag().split("/")[-1]

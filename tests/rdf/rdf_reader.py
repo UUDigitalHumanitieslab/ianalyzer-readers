@@ -1,11 +1,10 @@
 import csv
 import os
-from glob import glob
 
 from rdflib import Graph, URIRef, Literal
 from rdflib.namespace import RDF
 
-from ianalyzer_readers.readers.rdf import RDFReader
+from ianalyzer_readers.readers.rdf import get_uri_value, RDFReader
 from ianalyzer_readers.readers.core import Field
 from ianalyzer_readers.extract import RDF as RDFExtractor
 
@@ -23,7 +22,7 @@ class TestRDFReader(RDFReader):
     Example XML reader for testing
     """
 
-    data_directory = os.path.join(here, 'ttl_example')
+    data_directory = os.path.join(here, 'data')
 
     def document_subjects(self, graph: Graph):
         ''' get all subjects with a `hasSpeaker` predicate '''
@@ -31,21 +30,14 @@ class TestRDFReader(RDFReader):
         return subjects
 
     def sources(self, **kwargs):
-        for filename in glob(f'{self.data_directory}/*.ttl'):
-            full_path = os.path.join(self.data_directory, filename)
-            yield full_path
+        yield os.path.join(self.data_directory, 'hamlet.ttl')
 
-    identifier = Field(
-        'id',
-        RDFExtractor(
-            URIRef(ns_line_id),
-            node_type='subject'
-        )
-    )
+    identifier = Field("id", RDFExtractor(transform=get_uri_value))
     character = Field(
         'character',
         RDFExtractor(
-            URIRef(ns_speaker)
+            URIRef(ns_speaker),
+            transform=get_uri_value
         )
     )
     lines = Field(
@@ -63,7 +55,7 @@ class TestRDFReader(RDFReader):
         )
     )
 
-    fields = [character, lines, character_opacity]
+    fields = [identifier, character, lines, character_opacity]
 
 
 def create_test_data():
