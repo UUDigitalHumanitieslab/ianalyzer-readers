@@ -1,13 +1,14 @@
 from glob import glob
 import json
 import os
+from typing import Union
 
 from ianalyzer_readers.extract import JSON
 from ianalyzer_readers.readers.core import Field
 from ianalyzer_readers.readers.json import JSONReader
 
 
-def merge_lines(lines: list | str) -> str:
+def merge_lines(lines: Union[list, str]) -> str:
     if isinstance(lines, list):
         return "\n".join(lines)
     return lines
