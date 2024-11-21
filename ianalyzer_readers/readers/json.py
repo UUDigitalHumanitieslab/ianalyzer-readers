@@ -1,6 +1,6 @@
 import json
 from os.path import isfile
-from typing import Iterable, Optional, Union
+from typing import Iterable, List, Optional, Union
 
 from pandas import json_normalize
 from requests import Response
@@ -22,8 +22,8 @@ class JSONReader(Reader):
         meta: a list of keywords, or list of lists of keywords, by which metadata for each document can be located
     """
 
-    record_path: Optional[list[str]] = None
-    meta: Optional[list[Union[str, list[str]]]] = None
+    record_path: Optional[List[str]] = None
+    meta: Optional[List[Union[str, List[str]]]] = None
 
     def source2dicts(self, source: Source, *nargs, **kwargs) -> Iterable[Document]:
         """
