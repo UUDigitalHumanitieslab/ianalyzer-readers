@@ -1,4 +1,5 @@
 from glob import glob
+import json
 import os
 
 from ianalyzer_readers.extract import JSON
@@ -12,19 +13,51 @@ def merge_lines(lines: list | str) -> str:
     return lines
 
 
-class JSONTestReader(JSONReader):
+class JSONDocumentReader(JSONReader):
     """
-    Example JSON reader for testing, using JSON data from https://github.com/tux255/analyzing-shakespeare
+    Example reader that would operate on corpora with one json file per document
     """
 
     data_directory = os.path.join(os.path.dirname(__file__), "data")
-    record_path = ["SCENE", "SPEECH"]
-    meta = ["TITLE", ["SPEECH", "TITLE"], ["SPEECH", "STAGEDIR"]]
+
+    def sources(self, **kwargs):
+        for i in range(1):
+            data = json.dumps(
+                {
+                    "TITLE": "ACT I",
+                    "SCENE": {
+                        "TITLE": "SCENE I.  A desert place.",
+                        "STAGEDIR": [
+                            "Thunder and lightning. Enter three Witches",
+                            "Exeunt",
+                        ],
+                        "SPEECH": {
+                            "SPEAKER": "First Witch",
+                        },
+                    },
+                }
+            )
+            yield data.encode('utf-8')
+
+    act = Field("act", JSON("TITLE"))
+    character = Field("character", JSON("SCENE", "SPEECH", "SPEAKER"))
+    scene = Field("scene", JSON("SCENE", "TITLE"))
+
+    fields = [act, character, scene]
+
+
+class JSONMultipleDocumentReader(JSONDocumentReader):
+    """
+    Example JSON reader for testing parsing arrays in JSON, using JSON data from https://github.com/tux255/analyzing-shakespeare
+    """
 
     def sources(self, **kwargs):
         for filename in glob(f"{self.data_directory}/*.json"):
             full_path = os.path.join(self.data_directory, filename)
             yield full_path
+
+    record_path = ["SCENE", "SPEECH"]
+    meta = ["TITLE", ["SPEECH", "TITLE"], ["SPEECH", "STAGEDIR"]]
 
     act = Field("act", JSON("TITLE"))
     scene = Field("scene", JSON("SPEECH.TITLE"))

@@ -47,7 +47,8 @@ class JSONReader(Reader):
                 'records'
             )
         else:
-            documents = list(json_data)
+            documents = [json_data]
+
         self._reject_extractors(extract.XML, extract.CSV, extract.RDF)
 
         for doc in documents:

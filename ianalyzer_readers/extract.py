@@ -493,18 +493,24 @@ class ExternalFile(Extractor):
 
 
 class JSON(Extractor):
-    ''' An extractor to extract data from JSON
+    '''An extractor to extract data from JSON
     This extractor assumes that each source is a flat dictionary
-    
-    Parameters:
-        key: the key with which to retrieve a field from the source
-    '''
-    def __init__(self, key, *args, **kwargs):
-        self.key = key
-        super().__init__(*args, **kwargs)
 
-    def _apply(self, data, *args, **kwargs):
-        return data.get(self.key)
+    Parameters:
+        keys (Iterable[str]): the keys with which to retrieve a field value from the source
+    '''
+
+    def __init__(self, *keys, **kwargs):
+        self.keys = list(keys)
+        super().__init__(**kwargs)
+
+    def _apply(self, data: Union[str, dict], key_index: int = 0, **kwargs) -> str:
+        key = self.keys[key_index]
+        data = data.get(key)
+        if len(self.keys) > key_index + 1:
+            key_index += 1
+            return self._apply(data, key_index)
+        return data
 
 
 class RDF(Extractor):

@@ -1,4 +1,4 @@
-from tests.json.json_reader import JSONTestReader
+from tests.json.json_reader import JSONDocumentReader, JSONMultipleDocumentReader
 
 expected = [
     {
@@ -19,8 +19,18 @@ expected = [
 ]
 
 
-def test_json_read_file():
-    reader = JSONTestReader()
+def test_json_parse_single_document():
+    reader = JSONDocumentReader()
+    docs = list(reader.documents())
+    assert len(docs) == 1
+    assert docs[0].get('act') == 'ACT I'
+    assert docs[0].get('character') == 'First Witch'
+    assert docs[0].get('scene') == 'SCENE I.  A desert place.'
+
+
+def test_json_parse_multiple_documents():
+    '''test that JSON reader can parse multiple documents from an array in a single file'''
+    reader = JSONMultipleDocumentReader()
     docs = list(reader.documents())
     assert len(docs) == len(expected)
     _assert_matches(expected[0], docs[0])
