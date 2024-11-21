@@ -17,6 +17,7 @@ dependencies = [
   "lxml",
   "openpyxl",
   "pandas",
+  "requests",
   "rdflib",
 ]
 

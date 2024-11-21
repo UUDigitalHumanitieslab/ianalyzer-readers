@@ -6,6 +6,10 @@
 #
 beautifulsoup4==4.12.3
     # via ianalyzer_readers (setup.py)
+certifi==2024.8.30
+    # via requests
+charset-normalizer==3.4.0
+    # via requests
 click==8.1.7
     # via
     #   mkdocs
@@ -20,6 +24,8 @@ ghp-import==2.1.0
     # via mkdocs
 griffe==0.42.0
     # via mkdocstrings-python
+idna==3.10
+    # via requests
 iniconfig==2.0.0
     # via pytest
 isodate==0.6.1
@@ -95,6 +101,8 @@ pyyaml-env-tag==0.1
     # via mkdocs
 rdflib==7.0.0
     # via ianalyzer_readers (setup.py)
+requests==2.32.3
+    # via ianalyzer_readers (setup.py)
 six==1.16.0
     # via
     #   isodate
@@ -105,5 +113,7 @@ tomli==2.0.1
     # via pytest
 tzdata==2024.2
     # via pandas
+urllib3==2.2.3
+    # via requests
 watchdog==4.0.0
     # via mkdocs
