@@ -115,9 +115,9 @@ class JSONReader(Reader):
             json_data = self._get_json_data(source)
 
         if not self.single_document:
-            documents = json_normalize(json_data, self.record_path, self.meta).to_dict(
-                'records'
-            )
+            documents = json_normalize(
+                json_data, record_path=self.record_path, meta=self.meta
+            ).to_dict('records')
         else:
             documents = [json_data]
 

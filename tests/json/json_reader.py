@@ -20,6 +20,7 @@ class JSONDocumentReader(JSONReader):
     """
 
     data_directory = os.path.join(os.path.dirname(__file__), "data")
+    single_document = True
 
     def sources(self, **kwargs):
         for i in range(1):
@@ -47,23 +48,22 @@ class JSONDocumentReader(JSONReader):
     fields = [act, character, scene]
 
 
-class JSONMultipleDocumentReader(JSONDocumentReader):
+class JSONMultipleDocumentReader(JSONReader):
     """
     Example JSON reader for testing parsing arrays in JSON, using JSON data from https://github.com/tux255/analyzing-shakespeare
     """
+    data_directory = os.path.join(os.path.dirname(__file__), "data")
+    record_path = ["SCENE", "SPEECH"]
+    meta = ["TITLE", ["SCENE", "TITLE"], ["SCENE", "STAGEDIR"]]
 
     def sources(self, **kwargs):
         for filename in glob(f"{self.data_directory}/*.json"):
-            full_path = os.path.join(self.data_directory, filename)
-            yield full_path
-
-    record_path = ["SCENE", "SPEECH"]
-    meta = ["TITLE", ["SPEECH", "TITLE"], ["SPEECH", "STAGEDIR"]]
+            yield filename
 
     act = Field("act", JSON("TITLE"))
-    scene = Field("scene", JSON("SPEECH.TITLE"))
+    scene = Field("scene", JSON("SCENE.TITLE"))
     character = Field("character", JSON("SPEAKER"))
     lines = Field("lines", JSON("LINE", transform=merge_lines))
-    stage_dir = Field("stage_direction", JSON("SPEECH.STAGEDIR", transform=merge_lines))
+    stage_dir = Field("stage_direction", JSON("SCENE.STAGEDIR", transform=merge_lines))
 
     fields = [act, scene, character, lines, stage_dir]
