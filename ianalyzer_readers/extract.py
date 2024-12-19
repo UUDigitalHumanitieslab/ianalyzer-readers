@@ -493,8 +493,10 @@ class ExternalFile(Extractor):
 
 
 class JSON(Extractor):
-    '''An extractor to extract data from JSON
-    This extractor assumes that each source is a flat dictionary
+    '''
+    An extractor to extract data from JSON.
+    This extractor assumes that each source is dictionary without nested lists.
+    When working with nested lists, use JSONReader to unnest.
 
     Parameters:
         keys (Iterable[str]): the keys with which to retrieve a field value from the source
